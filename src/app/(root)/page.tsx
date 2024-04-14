@@ -1,10 +1,10 @@
 import BusinessInfo from "@/components/shared/BusinessInfo";
 import BusinessStatsCard from "@/components/shared/BusinessStatsCard";
-import ProductCard from "@/components/shared/ProductCard";
-import ProductList from "@/components/shared/ProductList";
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
+import OrderList from "@/components/shared/OrderList";
+import { HEADER_VARIANTS } from "@/lib/utils/constants";
 import ServerPageWrapper from "./serverPageWrapper";
+import { dummyProducts } from "@/lib/utils/constants";
+import { Ratings } from "@/components/ui/rating";
 
 const dummyStatsData = [
   {
@@ -24,40 +24,16 @@ const dummyStatsData = [
   },
 ];
 
-const dummyProducts = [
-  {
-    name: "Typographic Print Hooded Sweatshirt",
-    quantity: "1",
-    price: "100",
-    img: "/assets/dummyProduct.png",
-    orderId: "sellkhJE2A",
-    orderDate: "Web 22 Feb 23",
-  },
-  {
-    name: "Typographic Print Hooded Sweatshirt",
-    quantity: "1",
-    price: "100",
-    img: "/assets/dummyProduct.png",
-    orderId: "sellkhJE2A",
-    orderDate: "Web 22 Feb 23",
-  },
-  {
-    name: "Typographic Print Hooded Sweatshirt",
-    quantity: "1",
-    price: "100",
-    img: "/assets/dummyProduct.png",
-    orderId: "sellkhJE2A",
-    orderDate: "Web 22 Feb 23",
-  },
-];
-
 export default function Home() {
+  const headerProps = {
+    variant: HEADER_VARIANTS.Enhanced,
+  };
   return (
-    <ServerPageWrapper>
+    <ServerPageWrapper headerProps={headerProps}>
       <main className="p-4">
         <BusinessInfo />
         <BusinessStatsCard statsData={dummyStatsData} />
-        <ProductList products={dummyProducts} />
+        <OrderList products={dummyProducts} />
       </main>
     </ServerPageWrapper>
   );

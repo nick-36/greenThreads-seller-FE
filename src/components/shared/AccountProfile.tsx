@@ -15,9 +15,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { UserValidation } from "@/lib/validation/userValidation";
 import * as z from "zod";
 import Image from "next/image";
-import { isBase64Image } from "@/lib/utils/utils";
+import { isBase64Image } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
 import { Icons } from "../ui/icons";
+import { useSignUp } from "@clerk/nextjs";
 
 interface AccountProfileProps {
   user?: {
@@ -37,6 +38,11 @@ const AccountProfile = ({ user, ctaText }: AccountProfileProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const { isLoaded, signUp, setActive } = useSignUp();
+  const [pendingVerification, setPendingVerification] = useState(false);
+  const [code, setCode] = React.useState("");
+
+  console.log(isLoaded, "isLoaded");
 
   const form = useForm({
     resolver: zodResolver(UserValidation),
@@ -46,8 +52,31 @@ const AccountProfile = ({ user, ctaText }: AccountProfileProps) => {
       username: user?.username || "",
       email: user?.email || "",
       mobile: user?.mobile || "",
+      password: "",
     },
   });
+
+  const onFormSubmit = async (values: any) => {
+    if (!isLoaded) {
+      return;
+    }
+
+    try {
+      await signUp.create({
+        emailAddress: values.email,
+        password: values.password,
+      });
+
+      // send the email.
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+
+      // change the UI to our pending section.
+      setPendingVerification(true);
+    } catch (err: any) {
+      console.error(JSON.stringify(err, null, 2));
+    }
+  };
+
   async function onSubmit(values: z.infer<typeof UserValidation>) {
     const blob = values.profileImg;
 
@@ -66,6 +95,30 @@ const AccountProfile = ({ user, ctaText }: AccountProfileProps) => {
     //   router.push("/");
     // }
   }
+
+  const onPressVerify = async (e:React.FormEvent) => {
+    e.preventDefault();
+    if (!isLoaded) {
+      return;
+    }
+
+    try {
+      const completeSignUp = await signUp.attemptEmailAddressVerification({
+        code,
+      });
+      if (completeSignUp.status !== "complete") {
+        /*  investigate the response, to see if there was an error
+         or if the user needs to complete more steps.*/
+        console.log(JSON.stringify(completeSignUp, null, 2));
+      }
+      if (completeSignUp.status === "complete") {
+        await setActive({ session: completeSignUp.createdSessionId });
+        router.push("/");
+      }
+    } catch (err: any) {
+      console.error(JSON.stringify(err, null, 2));
+    }
+  };
   const handleImage = (
     e: ChangeEvent<HTMLInputElement>,
     fieldChange: (value: string) => void
@@ -85,10 +138,25 @@ const AccountProfile = ({ user, ctaText }: AccountProfileProps) => {
       fileReader.readAsDataURL(file);
     }
   };
+
+  if (pendingVerification) {
+    return (
+      <form onSubmit={onPressVerify}>
+        <label id="code">Code</label>
+        <input
+          value={code}
+          id="code"
+          name="code"
+          onChange={(e) => setCode(e.target.value)}
+        />
+        <button type="submit">Complete Sign Up</button>
+      </form>
+    );
+  }
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(onFormSubmit)}
         className="flex flex-col p-4 justify-start gap-4 md:gap-8"
       >
         <FormField
@@ -209,8 +277,30 @@ const AccountProfile = ({ user, ctaText }: AccountProfileProps) => {
               </FormItem>
             )}
           />
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem className="flex w-full flex-col">
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <Input
+                    id="password"
+                    placeholder="******"
+                    type="password"
+                    autoCapitalize="none"
+                    autoComplete="email"
+                    autoCorrect="off"
+                    required
+                    className="placeholder:text-gray-300 placeholder:font-light"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
-
         <Button type="submit">{ctaText}</Button>
       </form>
     </Form>

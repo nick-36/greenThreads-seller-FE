@@ -1,7 +1,7 @@
 "use client";
 import { buttonVariants } from "@/components/ui/button";
 import { Icons } from "@/components/ui/icons";
-import { cn } from "@/lib/utils/utils";
+import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
@@ -14,26 +14,36 @@ type link = {
 
 type IconComponentProps = {
   isActive: boolean;
+  className?: string;
 };
 
 interface IconComponents {
-  [key: string]: React.ComponentType<{ isActive: boolean }>;
+  [key: string]: React.ComponentType<IconComponentProps>;
 }
-
-const Orders = ({ isActive }: { isActive: boolean }) => {
-  return <Icons.orders fill={isActive ? "bg-black" : ""} />;
+const Home = ({ isActive, className }: IconComponentProps) => {
+  return (
+    <Icons.home
+      fill={isActive ? "bg-black" : "#8C8C8C"}
+      className={className}
+    />
+  );
 };
 
-const Home = ({ isActive }: { isActive: boolean }) => {
-  return <Icons.home fill={isActive ? "bg-black" : ""} />;
+const Orders = ({ isActive, className }: IconComponentProps) => {
+  return (
+    <Icons.orders
+      fill={isActive ? "bg-black" : "#8C8C8C"}
+      className={className}
+    />
+  );
 };
 
-const Revenue = ({ isActive }: { isActive: boolean }) => {
-  return <Icons.revenue fill={isActive ? "bg-black" : ""} />;
+const Revenue = ({ isActive }: IconComponentProps) => {
+  return <Icons.revenue fill={isActive ? "bg-black" : "#8C8C8C"} />;
 };
 
-const Products = ({ isActive }: { isActive: boolean }) => {
-  return <Icons.products fill={isActive ? "bg-black" : ""} />;
+const Products = ({ isActive }: IconComponentProps) => {
+  return <Icons.products fill={isActive ? "bg-black" : "#8C8C8C"} />;
 };
 
 const iconComponents: IconComponents = {
@@ -64,19 +74,19 @@ const MobileFooter = ({ links }: { links: link[] }) => {
               key={key}
               className={cn(
                 buttonVariants({ variant: "link" }),
-                "nav-link inline-flex flex-col items-center justify-center font-medium px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group"
+                "nav-link inline-flex flex-col items-center justify-center font-medium px-5  dark:hover:bg-gray-800 group"
               )}
             >
               <div
                 className={cn(
-                  "flex justify-center items-center flex-col gap-2"
+                  "flex justify-center items-center flex-col gap-2 group-hover:text-slate-900"
                 )}
               >
                 <IconComponent isActive={currPath === link.href} />
                 <span
                   className={cn(
                     currPath === link?.href ? "text-black" : "text-gray-400",
-                    "text-sm font-normal group-hover:text-slate-900"
+                    "text-xs font-light group-hover:text-slate-900"
                   )}
                 >
                   {link.name}

@@ -1,14 +1,8 @@
 import React from "react";
-import {
-  CardTitle,
-  CardDescription,
-  CardHeader,
-  CardContent,
-  Card,
-} from "@/components/ui/card";
+import { CardContent, Card } from "@/components/ui/card";
 import Image from "next/image";
 
-const ProductCard = ({ productDetails }: any) => {
+const OrderCard = ({ productDetails }: any) => {
   return (
     <Card className="max-w-sm shadow-md border-none">
       <CardContent className="p-0">
@@ -45,4 +39,4 @@ const ProductCard = ({ productDetails }: any) => {
   );
 };
 
-export default ProductCard;
+export default OrderCard;

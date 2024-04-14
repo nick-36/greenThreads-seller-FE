@@ -1,9 +1,12 @@
-import React from 'react'
+import React from "react";
+import ServerPageWrapper from "../serverPageWrapper";
 
 const page = () => {
   return (
-    <div>page</div>
-  )
-}
+    <ServerPageWrapper headerProps={{ headerTitle: "Products" }}>
+      <p>Products Page</p>
+    </ServerPageWrapper>
+  );
+};
 
-export default page
+export default page;

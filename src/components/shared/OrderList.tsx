@@ -1,5 +1,5 @@
 import React from "react";
-import ProductCard from "./ProductCard";
+import ProductCard from "./OrderCard";
 
 type Product = {
   name: string;
@@ -14,7 +14,7 @@ type ProductListProps = {
   products: Product[];
 };
 
-const ProductList = ({ products }: ProductListProps) => {
+const OrderList = ({ products }: ProductListProps) => {
   return (
     <div className="py-4 space-y-4">
       {products.map((product: Product) => {
@@ -24,4 +24,4 @@ const ProductList = ({ products }: ProductListProps) => {
   );
 };
 
-export default ProductList;
+export default OrderList;

@@ -1,17 +1,19 @@
 import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { cn } from "@/lib/utils/utils";
+import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import AccountProfile from "../shared/AccountProfile";
 import { Icons } from "../ui/icons";
+import { useSignUp } from "@clerk/nextjs";
 
 export const metadata: Metadata = {
   title: "Authentication",
   description: "Authentication forms built using the components.",
 };
 
-export default function AuthenticationPage() {
+export default function SignUp() {
+
   return (
     <>
       <div className="container mx-auto px-0 h-full md:h-[100vh] flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0 bg-zinc-900">
@@ -24,7 +26,7 @@ export default function AuthenticationPage() {
         >
           Login <Icons.forwardArrow className="font-bold" />
         </Link>
-        <div className="relative sm:h-auto md:h-full flex-col justify-center  items-center bg-muted p-10 text-white lg:flex dark:border-r sm:h-auto">
+        <div className="relative  md:h-full flex-col justify-center  items-center bg-muted p-10 text-white lg:flex dark:border-r sm:h-auto">
           <div className="absolute inset-0 bg-zinc-900" />
           <div className="relative mx-auto z-20 flex items-center text-lg font-medium w-[200px] h-[200px] md:w-[300px] md:h-[300px]">
             <Image
