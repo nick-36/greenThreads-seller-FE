@@ -1,40 +1,51 @@
 import React from "react";
-import {
-  CardTitle,
-  CardDescription,
-  CardHeader,
-  CardContent,
-  Card,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { CardTitle, CardHeader, CardContent, Card } from "@/components/ui/card";
 import Image from "next/image";
 
-type BusinessStatsData = {
+type BusinessStatsCard = {
   title: string;
   subTitle: string;
   icon: string;
 };
 
-const BusinessStatsCard = ({
+const BusinessStatsCard = ({ title, subTitle, icon }: BusinessStatsCard) => {
+  return (
+    <Card x-chunk="dashboard-01-chunk-0" className="">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        {/* <DollarSign className="h-4 w-4 text-muted-foreground" /> */}
+        <Image
+          src={icon}
+          alt="order"
+          width={34}
+          height={45}
+          // className="h-4 w-4"
+        />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{subTitle}</div>
+      </CardContent>
+    </Card>
+  );
+};
+
+const BusinessStatsCardList = ({
   statsData,
 }: {
-  statsData: BusinessStatsData[];
+  statsData: BusinessStatsCard[];
 }) => {
   return (
-    <div className="flex justify-center gap-2 py-4 border-b border-gray-100">
-      {statsData?.map((item: BusinessStatsData) => (
-        <Card className="max-w-sm h-auto shadow-md">
-          <CardContent className="flex flex-col space-y-2 p-2 min-w-28">
-            <p className="text-[0.6rem]">{item?.title}</p>
-            <div className="flex justify-between space-y-2">
-              <p className="text-2xl font-light">{item?.subTitle}</p>
-              <Image src={item?.icon} alt="order" width={34} height={45} />
-            </div>
-          </CardContent>
-        </Card>
+    <div className="grid items-center gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4 p-4">
+      {statsData?.map((item: BusinessStatsCard, idx) => (
+        <BusinessStatsCard
+          title={item?.title}
+          subTitle={item?.subTitle}
+          icon={item?.icon}
+          key={idx}
+        />
       ))}
     </div>
   );
 };
 
-export default BusinessStatsCard;
+export default BusinessStatsCardList;

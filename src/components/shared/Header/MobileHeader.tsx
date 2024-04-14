@@ -10,9 +10,11 @@ import { HEADER_VARIANTS } from "@/lib/utils/constants";
 import { HeaderProps } from "@/lib/utils/types/headerType";
 import { Ratings } from "@/components/ui/rating";
 import { useRouter } from "next/navigation";
-import { SignOutButton, RedirectToSignIn } from "@clerk/nextjs";
+import { SignOutButton, RedirectToSignIn, useClerk } from "@clerk/nextjs";
 
 const EnhancedHeader = () => {
+  const { signOut } = useClerk();
+  const router = useRouter();
   return (
     <div className="flex justify-between items-end bg-stone-900 px-2 py-8">
       <div className="flex gap-4 w-full items-center relative">
@@ -38,7 +40,7 @@ const EnhancedHeader = () => {
         </div>
         <div className="flex flex-col w-full space-y-2">
           <p className="text-sm font-normal text-white">Chad Adams</p>
-          <p className="text-[0.5rem] font-normal text-white">
+          <p className="text-xs font-normal text-white">
             michelle@gmail.com
           </p>
           <div className="w-full flex justify-between">
@@ -55,16 +57,11 @@ const EnhancedHeader = () => {
           <Icons.bell />
         </div>
 
-        <div className="flex justify-between items-end">
-          <Link
-            href="/sign-in"
-            className={cn(
-              buttonVariants({ variant: "link" }),
-              "text-white py-0 h-fit"
-            )}
-          >
-            Logout
-          </Link>
+        <div
+          className="flex justify-between items-end  text-white py-0 h-fit"
+          onClick={() => signOut(() => router.push("/sign-in"))}
+        >
+          Logout
         </div>
       </div>
     </div>

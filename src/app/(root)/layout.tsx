@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
-import Header from "@/components/shared/Header";
 import "./../globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 
@@ -11,7 +10,7 @@ export const metadata: Metadata = {
   description: "Green Threads Seller",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

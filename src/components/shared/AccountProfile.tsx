@@ -1,7 +1,5 @@
 "use client";
 import React, { ChangeEvent, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Form,
   FormControl,
@@ -19,6 +17,17 @@ import { isBase64Image } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
 import { Icons } from "../ui/icons";
 import { useSignUp } from "@clerk/nextjs";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface AccountProfileProps {
   user?: {
@@ -31,8 +40,13 @@ interface AccountProfileProps {
     mobile: string;
   };
   ctaText: string;
+  showPasswordField?: boolean;
 }
-const AccountProfile = ({ user, ctaText }: AccountProfileProps) => {
+const AccountProfile = ({
+  user,
+  ctaText,
+  showPasswordField = false,
+}: AccountProfileProps) => {
   const [files, setFiles] = useState<File[]>([]);
   //   const { startUpload } = useUploadThing("media");
   const router = useRouter();
@@ -96,7 +110,7 @@ const AccountProfile = ({ user, ctaText }: AccountProfileProps) => {
     // }
   }
 
-  const onPressVerify = async (e:React.FormEvent) => {
+  const onPressVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isLoaded) {
       return;
@@ -154,156 +168,166 @@ const AccountProfile = ({ user, ctaText }: AccountProfileProps) => {
     );
   }
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onFormSubmit)}
-        className="flex flex-col p-4 justify-start gap-4 md:gap-8"
-      >
-        <FormField
-          control={form.control}
-          name="profileImg"
-          render={({ field }) => (
-            <FormItem className="flex flex-col items-center gap-4">
-              <FormLabel className="account-form_image-label">
-                {field.value ? (
-                  <Image
-                    src={field.value}
-                    alt="profile photo"
-                    width={96}
-                    height={96}
-                    priority
-                    className="rounded-full border-2 border-white aspect-square object-cover"
-                  />
-                ) : (
-                  <Image
-                    src={"/assets/male_avatar.svg"}
-                    alt="profile photo"
-                    width={96}
-                    height={96}
-                    priority
-                    className="rounded-full border-2 border-white aspect-square object-cover"
+    <div className="w-full">
+      <Card className="w-full border-none shadow-none">
+        <CardContent className="p-0">
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onFormSubmit)}
+              className="grid w-full items-start gap-6 pt-0"
+            >
+              <FormField
+                control={form.control}
+                name="profileImg"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col items-center gap-4 mt-2">
+                    <FormLabel className="account-form_image-label">
+                      {field.value ? (
+                        <Image
+                          src={field.value}
+                          alt="profile photo"
+                          width={96}
+                          height={96}
+                          priority
+                          className="rounded-full border-2 border-white aspect-square object-cover"
+                        />
+                      ) : (
+                        <Image
+                          src={"/assets/male_avatar.svg"}
+                          alt="profile photo"
+                          width={96}
+                          height={96}
+                          priority
+                          className="rounded-full border-2 border-white aspect-square object-cover"
+                        />
+                      )}
+                    </FormLabel>
+                    <FormControl className="flex-1 text-base-semibold text-gray-200">
+                      <Input
+                        ref={inputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e: any) => handleImage(e, field.onChange)}
+                      />
+                    </FormControl>
+                    <Button
+                      className="min-w-16"
+                      size="icon"
+                      onClick={() => inputRef?.current?.click()}
+                    >
+                      <Icons.camera />
+                    </Button>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid w-full md:grid-cols-2 items-start gap-6 overflow-auto md:px-10 pt-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem className="grid gap-2">
+                      <FormLabel className="text-light-2">Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          placeholder="Your full name"
+                          className="placeholder:text-gray-300 placeholder:font-light"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem className="grid gap-2">
+                      <FormLabel className="text-light-2">User Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          placeholder="Username (e.g., john_doe)"
+                          className="placeholder:text-gray-300 placeholder:font-light"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="mobile"
+                  render={({ field }) => (
+                    <FormItem className="grid gap-2">
+                      <FormLabel>Mobile</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Mobile number (e.g., +123456789)"
+                          className="placeholder:text-gray-300 placeholder:font-light"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem className="grid gap-2">
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Your Email (e.g.,name@example.com)"
+                          className="placeholder:text-gray-300 placeholder:font-light"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {showPasswordField && (
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem className="grid gap-2">
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input
+                            id="password"
+                            placeholder="******"
+                            type="password"
+                            autoCapitalize="none"
+                            autoCorrect="off"
+                            className="placeholder:text-gray-300 placeholder:font-light"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
                 )}
-              </FormLabel>
-              <FormControl className="flex-1 text-base-semibold text-gray-200">
-                <Input
-                  ref={inputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e: any) => handleImage(e, field.onChange)}
-                />
-              </FormControl>
-              <Button
-                className="min-w-16"
-                size="icon"
-                onClick={() => inputRef?.current?.click()}
-              >
-                <Icons.camera />
-              </Button>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="space-y-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem className="flex w-full flex-col gap-2">
-                <FormLabel className="text-light-2">Name</FormLabel>
-                <FormControl>
-                  <Input
-                    type="text"
-                    placeholder="Your full name"
-                    className="placeholder:text-gray-300 placeholder:font-light"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="username"
-            render={({ field }) => (
-              <FormItem className="flex w-full flex-col">
-                <FormLabel className="text-light-2">User Name</FormLabel>
-                <FormControl>
-                  <Input
-                    type="text"
-                    placeholder="Username (e.g., john_doe)"
-                    className="placeholder:text-gray-300 placeholder:font-light"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="mobile"
-            render={({ field }) => (
-              <FormItem className="flex w-full flex-col">
-                <FormLabel>Mobile</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Mobile number (e.g., +123456789)"
-                    className="placeholder:text-gray-300 placeholder:font-light"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem className="flex w-full flex-col">
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Your Email (e.g.,name@example.com)"
-                    className="placeholder:text-gray-300 placeholder:font-light"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem className="flex w-full flex-col">
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                  <Input
-                    id="password"
-                    placeholder="******"
-                    type="password"
-                    autoCapitalize="none"
-                    autoComplete="email"
-                    autoCorrect="off"
-                    required
-                    className="placeholder:text-gray-300 placeholder:font-light"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <Button type="submit">{ctaText}</Button>
-      </form>
-    </Form>
+              </div>
+              <div className="w-full grid place-items-center">
+                <Button type="submit" className="grid gap-2 md:min-w-80">
+                  {ctaText}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

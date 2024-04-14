@@ -8,21 +8,13 @@ import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { UserAuthForm } from "@/components/auth/UserAuthForm";
 import { Icons } from "../ui/icons";
+import { MoveLeft, MoveLeftIcon } from "lucide-react";
 
 const ForgotPassword = () => {
   return (
     <>
       {/*  mx-auto px-0 h-full md:h-[100vh] flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0 */}
       <div className="container h-[calc(100vh-80px)] md:h-screen  px-0 items-center justify-center md:grid lg:max-w-none lg:grid-cols-2  bg-zinc-900">
-        {/* <Link
-          href="/sign-up"
-          className={cn(
-            buttonVariants({ variant: "link" }),
-            "absolute right-4 top-4 md:right-8 md:top-8 z-10 text-white md:text-black"
-          )}
-        >
-          Sign up
-        </Link> */}
         <Link
           href="/sign-up"
           className={cn(
@@ -62,6 +54,7 @@ const ForgotPassword = () => {
               step="FORGOT_PASSWORD"
               ctaText="Submit"
               ctaCallBack={() => {}}
+              showPasswordField={false}
             />
             <p className="hidden md:flex  justify-center items-end md:items-start text-center text-sm text-muted-foreground">
               <Link

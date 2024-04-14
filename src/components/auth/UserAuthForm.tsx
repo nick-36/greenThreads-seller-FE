@@ -21,15 +21,22 @@ import {
 } from "@/components/ui/form";
 import { useSignIn } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { z } from "zod";
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {
   step?: "SIGN_IN" | "SIGN_UP" | "FORGOT_PASSWORD";
   ctaText?: string;
   ctaCallBack?: (data?: any) => void;
+  showPasswordField?: boolean;
 }
 
 export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
-  const { step = "SIGN_IN", ctaCallBack = () => {}, ctaText = "Login" } = props;
+  const {
+    step = "SIGN_IN",
+    ctaCallBack = () => {},
+    ctaText = "Login",
+    showPasswordField = true,
+  } = props;
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const { isLoaded, signIn, setActive } = useSignIn();
   const router = useRouter();
@@ -41,13 +48,15 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const form = useForm({
     resolver: zodResolver(SignInValidation),
     defaultValues: {
+      _step: step,
       email: "",
       password: "",
     },
   });
 
+  // form.setValue("_step", "SIGN_IN");
+
   const onSubmit = async (values: any) => {
-    console.log(values, "VAAL");
     if (!isLoaded) {
       return;
     }
@@ -95,47 +104,31 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem className="flex w-full flex-col">
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input
-                          id="password"
-                          placeholder="******"
-                          type="password"
-                          autoCapitalize="none"
-                          autoComplete="email"
-                          autoCorrect="off"
-                          required
-                          className="placeholder:text-gray-300 placeholder:font-light"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              {/* {step === "SIGN_IN" && (
-                <div className="grid gap-4">
-                  <Label className="" htmlFor="password">
-                    Password
-                  </Label>
-                  <Input
-                    id="password"
-                    placeholder="Enter Password"
-                    type="password"
-                    autoCapitalize="none"
-                    autoComplete="email"
-                    autoCorrect="off"
-                    disabled={isLoading}
-                    required
+                {showPasswordField && (
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem className="flex w-full flex-col">
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input
+                            id="password"
+                            placeholder="******"
+                            type="password"
+                            autoCapitalize="none"
+                            autoComplete="email"
+                            autoCorrect="off"
+                            className="placeholder:text-gray-300 placeholder:font-light"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-              )} */}
+                )}
+              </div>
             </div>
             <Button disabled={isLoading} onClick={ctaCallBack}>
               {isLoading && (

@@ -3,61 +3,131 @@ export enum HEADER_VARIANTS {
   Default = "DEFAULT",
 }
 
-export const dummyProducts = [
+export const dummyOrders = [
   {
-    name: "Typographic Print Hooded Sweatshirt",
-    quantity: "1",
-    price: "100",
-    img: "/assets/dummyProduct.png",
     orderId: "sellkhJE2A",
     orderDate: "Web 22 Feb 23",
+    products: [
+      {
+        name: "Typographic Print Hooded Sweatshirt",
+        quantity: "1",
+        price: "100",
+        img: "/assets/dummyProduct.png",
+      },
+      {
+        name: "Typographic Print Hooded Sweatshirt",
+        quantity: "1",
+        price: "100",
+        img: "/assets/dummyProduct2.png",
+      },
+    ],
   },
   {
-    name: "Typographic Print Hooded Sweatshirt",
-    quantity: "1",
-    price: "100",
-    img: "/assets/dummyProduct2.png",
     orderId: "sellkhJE2A",
     orderDate: "Web 22 Feb 23",
+    products: [
+      {
+        name: "Typographic Print Hooded Sweatshirt",
+        quantity: "1",
+        price: "100",
+        img: "/assets/dummyProduct2.png",
+      },
+    ],
   },
   {
-    name: "Typographic Print Hooded Sweatshirt",
-    quantity: "1",
-    price: "100",
-    img: "/assets/dummyProduct.png",
     orderId: "sellkhJE2A",
     orderDate: "Web 22 Feb 23",
+    products: [
+      {
+        name: "Typographic Print Hooded Sweatshirt",
+        quantity: "1",
+        price: "100",
+        img: "/assets/dummyProduct2.png",
+      },
+    ],
   },
   {
-    name: "Typographic Print Hooded Sweatshirt",
-    quantity: "1",
-    price: "100",
-    img: "/assets/dummyProduct2.png",
     orderId: "sellkhJE2A",
     orderDate: "Web 22 Feb 23",
+    products: [
+      {
+        name: "Typographic Print Hooded Sweatshirt",
+        quantity: "1",
+        price: "100",
+        img: "/assets/dummyProduct2.png",
+      },
+    ],
   },
   {
-    name: "Typographic Print Hooded Sweatshirt",
-    quantity: "1",
-    price: "100",
-    img: "/assets/dummyProduct.png",
     orderId: "sellkhJE2A",
     orderDate: "Web 22 Feb 23",
+    products: [
+      {
+        name: "Typographic Print Hooded Sweatshirt",
+        quantity: "1",
+        price: "100",
+        img: "/assets/dummyProduct2.png",
+      },
+    ],
   },
   {
-    name: "Typographic Print Hooded Sweatshirt",
-    quantity: "1",
-    price: "100",
-    img: "/assets/dummyProduct2.png",
     orderId: "sellkhJE2A",
     orderDate: "Web 22 Feb 23",
+    products: [
+      {
+        name: "Typographic Print Hooded Sweatshirt",
+        quantity: "1",
+        price: "100",
+        img: "/assets/dummyProduct2.png",
+      },
+    ],
   },
   {
-    name: "Typographic Print Hooded Sweatshirt",
-    quantity: "1",
-    price: "100",
-    img: "/assets/dummyProduct2.png",
     orderId: "sellkhJE2A",
     orderDate: "Web 22 Feb 23",
+    products: [
+      {
+        name: "Typographic Print Hooded Sweatshirt",
+        quantity: "1",
+        price: "100",
+        img: "/assets/dummyProduct.png",
+      },
+    ],
+  },
+  {
+    orderId: "sellkhJE2A",
+    orderDate: "Web 22 Feb 23",
+    products: [
+      {
+        name: "Typographic Print Hooded Sweatshirt",
+        quantity: "1",
+        price: "100",
+        img: "/assets/dummyProduct.png",
+      },
+      {
+        name: "Typographic Print Hooded Sweatshirt",
+        quantity: "1",
+        price: "100",
+        img: "/assets/dummyProduct2.png",
+      },
+    ],
+  },
+  {
+    orderId: "sellkhJE2A",
+    orderDate: "Web 22 Feb 23",
+    products: [
+      {
+        name: "Typographic Print Hooded Sweatshirt",
+        quantity: "1",
+        price: "100",
+        img: "/assets/dummyProduct.png",
+      },
+      {
+        name: "Typographic Print Hooded Sweatshirt",
+        quantity: "1",
+        price: "100",
+        img: "/assets/dummyProduct2.png",
+      },
+    ],
   },
 ];
