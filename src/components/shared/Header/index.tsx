@@ -5,14 +5,12 @@ import { HeaderProps } from "@/lib/utils/types/headerType";
 
 const Header = (props: HeaderProps) => {
   return (
-    <div>
-      <div className="md:hidden">
+    <>
+      {/* <div className="md:hidden">
         <MobileHeader {...props} />
-      </div>
-      <div className="hidden md:block">
-        <DesktopHeader />
-      </div>
-    </div>
+      </div> */}
+      <DesktopHeader />
+    </>
   );
 };
 

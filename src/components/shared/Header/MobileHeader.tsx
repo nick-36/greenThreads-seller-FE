@@ -11,10 +11,13 @@ import { HeaderProps } from "@/lib/utils/types/headerType";
 import { Ratings } from "@/components/ui/rating";
 import { useRouter } from "next/navigation";
 import { SignOutButton, RedirectToSignIn, useClerk } from "@clerk/nextjs";
+import { useUser } from "@clerk/clerk-react";
 
 const EnhancedHeader = () => {
   const { signOut } = useClerk();
   const router = useRouter();
+  const { user } = useUser();
+
   return (
     <div className="flex justify-between items-end bg-stone-900 px-2 py-8">
       <div className="flex gap-4 w-full items-center relative">
@@ -38,10 +41,10 @@ const EnhancedHeader = () => {
             <Link href={"/profile"}>Edit Profile</Link>
           </Button>
         </div>
-        <div className="flex flex-col w-full space-y-2">
-          <p className="text-sm font-normal text-white">Chad Adams</p>
+        <div className="flex flex-col w-full space-y-1">
+          <p className="text-sm font-normal text-white">{user?.fullName}</p>
           <p className="text-xs font-normal text-white">
-            michelle@gmail.com
+            {user?.primaryEmailAddress?.emailAddress}
           </p>
           <div className="w-full flex justify-between">
             <Ratings variant="yellow" rating={3.5} />
@@ -51,7 +54,7 @@ const EnhancedHeader = () => {
 
       <div className="h-full flex flex-col space-y-4 justify-between items-center relative">
         <div className="relative w-fit">
-          <Badge className="absolute p-0 top-0 right-0 z-10 flex h-5 w-5 rounded-full  -translate-y-1/2 translate-x-2/4  items-center justify-center bg-red-500 text-white">
+          <Badge className="absolute p-0 top-0 right-0 z-10 flex h-5 w-5 rounded-full -translate-y-1/2 translate-x-2/4  items-center justify-center bg-red-500 text-white">
             1
           </Badge>
           <Icons.bell />

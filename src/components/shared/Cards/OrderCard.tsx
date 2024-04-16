@@ -6,9 +6,12 @@ const OrderCard = ({ orderDetails }: any) => {
   return (
     <Card className="max-w-sm shadow-md border-none cursor-pointer">
       <CardContent className="p-0 ">
-        {orderDetails.products.map((product: any) => {
+        {orderDetails.products.map((product: any, idx: number) => {
           return (
-            <div className="flex flex-start  gap-2 space-y-2 border-b p-2">
+            <div
+              className="flex flex-start  gap-2 space-y-2 border-b p-2"
+              key={idx}
+            >
               <div className="rounded-md shrink-0 w-24 h-24  relative md:rounded-none">
                 <Image src={product?.img} alt="order" fill />
               </div>

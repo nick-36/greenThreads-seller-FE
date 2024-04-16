@@ -6,7 +6,7 @@ import Link from "next/link";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
-import { UserAuthForm } from "@/components/auth/UserAuthForm";
+import { UserAuthForm } from "@/components/forms/UserAuthForm";
 import { Icons } from "../ui/icons";
 import { MoveLeft, MoveLeftIcon } from "lucide-react";
 

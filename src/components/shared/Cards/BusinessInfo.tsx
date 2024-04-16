@@ -14,8 +14,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { SignInButton } from "@clerk/nextjs";
-
 
 const FilterOptions = [
   {

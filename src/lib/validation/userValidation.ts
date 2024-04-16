@@ -5,6 +5,12 @@ const phoneRegex = new RegExp(
 );
 
 export const UserValidation = z.object({
+  firstName: z
+    .string()
+    .min(2, { message: "FirstName must be at least 2 characters." }),
+  lastName: z
+    .string()
+    .min(2, { message: "LastName must be at least 2 characters." }),
   username: z
     .string({
       required_error: "Username name is required",
@@ -20,7 +26,7 @@ export const UserValidation = z.object({
     .email({ message: "Invalid email address" }),
   mobile: z.string().regex(phoneRegex, "Invalid Number!"),
   profileImg: z.string(),
-  password: z.string().min(4),
+  password: z.string().min(8),
 });
 
 enum FormType {

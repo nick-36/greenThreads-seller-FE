@@ -19,4 +19,9 @@ export const mobileFooterLinks = [
     href: "/products",
     icon: "products",
   },
+  {
+    name: "Analytics",
+    href: "/analytics",
+    icon: "barchart",
+  },
 ];

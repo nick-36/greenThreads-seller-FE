@@ -1,5 +1,11 @@
 "use client";
-import React, { ChangeEvent, useRef, useState } from "react";
+import React, {
+  ChangeEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Form,
   FormControl,
@@ -16,36 +22,22 @@ import Image from "next/image";
 import { isBase64Image } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
 import { Icons } from "../ui/icons";
-import { useSignUp } from "@clerk/nextjs";
-import Link from "next/link";
+import { useSignUp, useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import OTPScreen from "./OTPScreen";
+import { Camera } from "lucide-react";
 
 interface AccountProfileProps {
-  user?: {
-    id: string | undefined;
-    objectId: string;
-    name: string;
-    username: string;
-    email: string;
-    image?: string;
-    mobile: string;
-  };
   ctaText: string;
   showPasswordField?: boolean;
+  isSignUpFlow?: boolean;
 }
 const AccountProfile = ({
-  user,
   ctaText,
   showPasswordField = false,
+  isSignUpFlow = false,
 }: AccountProfileProps) => {
   const [files, setFiles] = useState<File[]>([]);
   //   const { startUpload } = useUploadThing("media");
@@ -54,21 +46,38 @@ const AccountProfile = ({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const { isLoaded, signUp, setActive } = useSignUp();
   const [pendingVerification, setPendingVerification] = useState(false);
+  const { user } = useUser();
   const [code, setCode] = React.useState("");
-
-  console.log(isLoaded, "isLoaded");
 
   const form = useForm({
     resolver: zodResolver(UserValidation),
-    defaultValues: {
-      profileImg: user?.image || "",
-      name: user?.name || "",
-      username: user?.username || "",
-      email: user?.email || "",
-      mobile: user?.mobile || "",
-      password: "",
-    },
+    defaultValues: useMemo(() => {
+      console.log(user, "USER");
+      return {
+        profileImg: "",
+        firstName: "",
+        lastName: "",
+        username: "",
+        email: "",
+        mobile: "",
+        password: "",
+      };
+    }, [user]),
   });
+
+  useEffect(() => {
+    if (user) {
+      form?.reset({
+        profileImg: user?.hasImage ? user?.imageUrl : "",
+        firstName: user?.firstName || "",
+        lastName: user?.lastName || "",
+        username: user?.username || "",
+        email: user?.primaryEmailAddress?.emailAddress || "",
+        mobile: user?.phoneNumbers[0]?.phoneNumber || "",
+        password: "",
+      });
+    }
+  }, [user?.id]);
 
   const onFormSubmit = async (values: any) => {
     if (!isLoaded) {
@@ -79,6 +88,9 @@ const AccountProfile = ({
       await signUp.create({
         emailAddress: values.email,
         password: values.password,
+        firstName: values?.firstName,
+        lastName: values?.lastName,
+        username: values?.userName,
       });
 
       // send the email.
@@ -155,25 +167,33 @@ const AccountProfile = ({
 
   if (pendingVerification) {
     return (
-      <form onSubmit={onPressVerify}>
-        <label id="code">Code</label>
-        <input
-          value={code}
-          id="code"
-          name="code"
-          onChange={(e) => setCode(e.target.value)}
-        />
-        <button type="submit">Complete Sign Up</button>
-      </form>
+      <div className="p-6 flex justify-center">
+        <div className="flex flex-col space-y-6 text-center">
+          <h2 className="text-xl font-semibold tracking-tight">
+            Enter the OTP received in your email
+          </h2>
+          <OTPScreen />
+        </div>
+      </div>
     );
   }
   return (
-    <div className="w-full">
+    <>
+      {isSignUpFlow && (
+        <div className="flex flex-col space-y-2 text-center">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Start Your Journey Here,
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            It only takes a minute to sign up!
+          </p>
+        </div>
+      )}
       <Card className="w-full border-none shadow-none">
-        <CardContent className="p-0">
+        <CardContent>
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit(onFormSubmit)}
+              onSubmit={form?.handleSubmit(onFormSubmit)}
               className="grid w-full items-start gap-6 pt-0"
             >
               <FormField
@@ -181,7 +201,7 @@ const AccountProfile = ({
                 name="profileImg"
                 render={({ field }) => (
                   <FormItem className="flex flex-col items-center gap-4 mt-2">
-                    <FormLabel className="account-form_image-label">
+                    <FormLabel className="relative">
                       {field.value ? (
                         <Image
                           src={field.value}
@@ -201,6 +221,13 @@ const AccountProfile = ({
                           className="rounded-full border-2 border-white aspect-square object-cover"
                         />
                       )}
+                      <Button
+                        className="h-8 w-8 rounded-full absolute bottom-0 right-0"
+                        size="icon"
+                        onClick={() => inputRef?.current?.click()}
+                      >
+                        <Camera size={16} strokeWidth={1} absoluteStrokeWidth />
+                      </Button>
                     </FormLabel>
                     <FormControl className="flex-1 text-base-semibold text-gray-200">
                       <Input
@@ -211,13 +238,7 @@ const AccountProfile = ({
                         onChange={(e: any) => handleImage(e, field.onChange)}
                       />
                     </FormControl>
-                    <Button
-                      className="min-w-16"
-                      size="icon"
-                      onClick={() => inputRef?.current?.click()}
-                    >
-                      <Icons.camera />
-                    </Button>
+
                     <FormMessage />
                   </FormItem>
                 )}
@@ -225,14 +246,32 @@ const AccountProfile = ({
               <div className="grid w-full md:grid-cols-2 items-start gap-6 overflow-auto md:px-10 pt-4">
                 <FormField
                   control={form.control}
-                  name="name"
+                  name="firstName"
                   render={({ field }) => (
                     <FormItem className="grid gap-2">
-                      <FormLabel className="text-light-2">Name</FormLabel>
+                      <FormLabel className="text-light-2">First Name</FormLabel>
                       <FormControl>
                         <Input
                           type="text"
-                          placeholder="Your full name"
+                          placeholder="Your First name"
+                          className="placeholder:text-gray-300 placeholder:font-light"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem className="grid gap-2">
+                      <FormLabel className="text-light-2">Last Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          placeholder="Your last name"
                           className="placeholder:text-gray-300 placeholder:font-light"
                           {...field}
                         />
@@ -327,7 +366,7 @@ const AccountProfile = ({
           </Form>
         </CardContent>
       </Card>
-    </div>
+    </>
   );
 };
 

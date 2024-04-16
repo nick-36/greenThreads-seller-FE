@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
-import AccountProfile from "../shared/AccountProfile";
+import AccountProfile from "./AccountProfile";
 import { Icons } from "../ui/icons";
 
 export const metadata: Metadata = {
@@ -36,15 +36,11 @@ export default function SignUp() {
         </div>
         <div className="p-6 rounded-t-[32px] md:rounded-none  md:rounded-l-[32px] bg-white h-full">
           <div className="h-full flex flex-col  justify-center">
-            <div className="flex flex-col space-y-2 text-center">
-              <h1 className="text-2xl font-semibold tracking-tight">
-                Start Your Journey Here,
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                It only takes a minute to sign up!
-              </p>
-            </div>
-            <AccountProfile ctaText="Sign up" showPasswordField={true} />
+            <AccountProfile
+              ctaText="Sign up"
+              showPasswordField={true}
+              isSignUpFlow={true}
+            />
           </div>
         </div>
       </div>

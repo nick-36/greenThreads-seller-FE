@@ -3,9 +3,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
-import { UserAuthForm } from "@/components/auth/UserAuthForm";
+import { UserAuthForm } from "@/components/forms/UserAuthForm";
 import { useSignIn } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { Icons } from "@/components/ui/icons";
 
 export default function SignIn() {
   const { isLoaded, signIn, setActive } = useSignIn();
@@ -18,10 +19,10 @@ export default function SignIn() {
           href="/sign-up"
           className={cn(
             buttonVariants({ variant: "link" }),
-            "absolute right-4 top-4 md:right-8 md:top-8 z-10 text-white md:text-black"
+            "flex gap-2 absolute right-4 top-4 md:right-8 md:top-8 z-10 text-white md:text-black"
           )}
         >
-          Sign up
+          Sign up <Icons.forwardArrow className="font-bold" />
         </Link>
         <div className="relative md:h-full flex-col justify-center  items-center bg-muted p-10 text-white lg:flex dark:border-r">
           <div className="absolute inset-0 bg-zinc-900" />

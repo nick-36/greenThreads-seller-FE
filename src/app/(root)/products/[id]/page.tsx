@@ -1,6 +1,6 @@
 import React from "react";
 import ServerPageWrapper from "../../serverPageWrapper";
-import DesktopMain from "@/components/shared/DesktopMain";
+import DesktopMain from "@/components/shared/Layouts/DesktopMain";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Page = ({}) => {
   return (
@@ -231,18 +232,22 @@ const Page = ({}) => {
                       <div className="grid gap-6">
                         <div className="grid gap-3">
                           <Label htmlFor="status">Status</Label>
-                          <Select>
-                            <SelectTrigger
-                              id="status"
-                              aria-label="Select status"
-                            >
-                              <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="published">Active</SelectItem>
-                              <SelectItem value="archived">InActive</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <Tabs defaultValue="active">
+                            <TabsList className="">
+                              <TabsTrigger
+                                className="data-[state=active]:bg-cyan-400	 data-[state=active]:text-white"
+                                value="active"
+                              >
+                                Active
+                              </TabsTrigger>
+                              <TabsTrigger
+                                className="data-[state=active]:bg-red-500 data-[state=active]:text-white"
+                                value="inactive"
+                              >
+                                Inactive
+                              </TabsTrigger>
+                            </TabsList>
+                          </Tabs>
                         </div>
                       </div>
                     </CardContent>

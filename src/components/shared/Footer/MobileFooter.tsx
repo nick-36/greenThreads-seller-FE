@@ -4,7 +4,7 @@ import { Icons } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 type link = {
   name: string;
@@ -65,7 +65,7 @@ const MobileFooter = ({ links }: { links: link[] }) => {
 
   return (
     <div className="fixed bottom-0 left-0 z-10 w-full h-16 bg-white border-t border-gray-200 dark:bg-gray-700 dark:border-gray-600 md:hidden">
-      <div className="grid h-full py-4 max-w-lg grid-cols-4 mx-auto">
+      <div className="grid h-full py-4 max-w-lg grid-cols-4">
         {links.map((link, key) => {
           const IconComponent = iconComponents[link.icon];
           return (

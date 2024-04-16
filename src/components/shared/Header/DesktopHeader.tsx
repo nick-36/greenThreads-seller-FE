@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState, ReactElement } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,9 +8,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-
+import { mobileFooterLinks } from "@/lib/utils/mobileFooterLinks";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import {
@@ -19,18 +18,31 @@ import {
   LineChart,
   Menu,
   Package,
-  Package2,
-  Search,
   ShoppingCart,
-  Users,
+  BarChart,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { useClerk } from "@clerk/clerk-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import ToggleTheme from "@/components/shared/ToggleTheme";
+import NotificationBell from "../NotificationBell";
+
+interface IconMapping {
+  [key: string]: (props: Record<string, any>) => ReactElement;
+}
+const iconMapping: IconMapping = {
+  home: (props: any) => <Home className="h-4 w-4" {...props} />,
+  orders: (props: any) => <ShoppingCart className="h-4 w-4" {...props} />,
+  revenue: (props: any) => <LineChart className="h-4 w-4" {...props} />,
+  products: (props: any) => <Package className="h-4 w-4" {...props} />,
+  barchart: (props: any) => <BarChart className="h-4 w-4" {...props} />,
+};
 
 const DesktopHeader = () => {
   const { signOut } = useClerk();
   const router = useRouter();
+  const pathname = usePathname();
+  const [currPath, setCurrPath] = useState(pathname);
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
@@ -43,88 +55,67 @@ const DesktopHeader = () => {
         </SheetTrigger>
         <SheetContent side="left" className="flex flex-col">
           <nav className="grid gap-2 text-lg font-medium">
-            <Link
-              href="#"
-              className="flex items-center gap-2 text-lg font-semibold"
-            >
-              <Package2 className="h-6 w-6" />
-              <span className="sr-only">Acme Inc</span>
-            </Link>
-            <Link
-              href="#"
-              className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
-            >
-              <Home className="h-5 w-5" />
-              Dashboard
-            </Link>
-            <Link
-              href="#"
-              className="mx-[-0.65rem] flex items-center gap-4 rounded-xl bg-muted px-3 py-2 text-foreground hover:text-foreground"
-            >
-              <ShoppingCart className="h-5 w-5" />
-              Orders
-              <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-                6
-              </Badge>
-            </Link>
-            <Link
-              href="#"
-              className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
-            >
-              <Package className="h-5 w-5" />
-              Products
-            </Link>
-            <Link
-              href="#"
-              className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
-            >
-              <Users className="h-5 w-5" />
-              Customers
-            </Link>
-            <Link
-              href="#"
-              className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
-            >
-              <LineChart className="h-5 w-5" />
-              Analytics
-            </Link>
+            {mobileFooterLinks.map((link) => {
+              const isActive = currPath === link.href;
+              return (
+                <Link
+                  href={link.href}
+                  key={link.href}
+                  className={cn(
+                    "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
+                    isActive ? "bg-muted/10 " : ""
+                  )}
+                >
+                  {iconMapping[link.icon]({ isActive })}
+                  {link.name}
+                </Link>
+              );
+            })}
           </nav>
         </SheetContent>
       </Sheet>
-      <div className="w-full flex-1">
-        <form>
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search products..."
-              className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
-            />
-          </div>
-        </form>
+      {/* <Link
+        href="#"
+        className="flex items-center gap-2 text-lg h-6 w-6 font-semibold"
+      >
+        <div className="ml-auto relative z-20 flex items-center text-lg font-medium h-6 w-6  bg-slate-900 rounded">
+          <Image
+            src="/brandLogoV2.svg"
+            fill
+            alt="green-thread-logo"
+            className="rounded"
+          />
+        </div>
+        <span className="sr-only">greenThreads</span>
+      </Link> */}
+      <div className="ml-auto flex items-center gap-4">
+        <ToggleTheme />
+        <div className="md:hidden">
+          <NotificationBell notificationCount={4} />
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="secondary" size="icon" className="rounded-full">
+              <CircleUser className="h-5 w-5" />
+              <span className="sr-only">Toggle user menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              <Link href={"/profile"}>Edit Profile</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem>Support</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => signOut(() => router.push("/sign-in"))}
+            >
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="secondary" size="icon" className="rounded-full">
-            <CircleUser className="h-5 w-5" />
-            <span className="sr-only">Toggle user menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <Link href={"/profile"}>Edit Profile</Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem>Support</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() => signOut(() => router.push("/sign-in"))}
-          >
-            Logout
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
     </header>
   );
 };
