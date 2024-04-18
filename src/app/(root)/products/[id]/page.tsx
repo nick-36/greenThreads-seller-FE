@@ -268,7 +268,7 @@ const Page = ({}) => {
                           alt="Product image"
                           className="aspect-square w-full rounded-md object-cover"
                           height="300"
-                          src="/placeholder.svg"
+                          src="/assets/placeholder.svg"
                           width="300"
                         />
                         <div className="grid grid-cols-3 gap-2">
@@ -277,7 +277,7 @@ const Page = ({}) => {
                               alt="Product image"
                               className="aspect-square w-full rounded-md object-cover"
                               height="84"
-                              src="/placeholder.svg"
+                              src="/assets/placeholder.svg"
                               width="84"
                             />
                           </button>
@@ -286,7 +286,7 @@ const Page = ({}) => {
                               alt="Product image"
                               className="aspect-square w-full rounded-md object-cover"
                               height="84"
-                              src="/placeholder.svg"
+                              src="/assets/placeholder.svg"
                               width="84"
                             />
                           </button>

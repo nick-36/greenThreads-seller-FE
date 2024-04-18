@@ -57,7 +57,7 @@ const ProductList = ({ data }: any) => {
       accessorKey: "name",
       header: "Customer",
       cell: ({ row }) => {
-        const { name, email } = row?.original;
+        const { name } = row?.original;
         return <div className="font-medium">{name}</div>;
       },
     },
@@ -65,10 +65,10 @@ const ProductList = ({ data }: any) => {
       accessorKey: "sale",
       header: "Sale",
       cell: ({ row }) => {
-        const { type } = row?.original;
+        const { sale } = row?.original;
         return (
           <>
-            <div className="hidden sm:table-cell">{type}</div>
+            <div className="sm:table-cell">{sale}</div>
           </>
         );
       },
@@ -80,7 +80,7 @@ const ProductList = ({ data }: any) => {
         const { status } = row?.original;
 
         return (
-          <div className="hidden sm:table-cell">
+          <div className="sm:table-cell">
             <Badge className="text-xs" variant="secondary">
               {status}
             </Badge>
@@ -93,7 +93,7 @@ const ProductList = ({ data }: any) => {
       header: "Date",
       cell: ({ row }) => {
         const { date } = row?.original;
-        return <div className="hidden md:table-cell">{date}</div>;
+        return <div className="md:table-cell">{date}</div>;
       },
     },
 
@@ -124,7 +124,6 @@ const ProductList = ({ data }: any) => {
                   router.push(`/products/{row.id}`);
                 }}
               >
-                {" "}
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem>Delete</DropdownMenuItem>
@@ -142,10 +141,7 @@ const ProductList = ({ data }: any) => {
           <TabsList>
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="draft">Draft</TabsTrigger>
-            <TabsTrigger value="archived" className="hidden sm:flex">
-              Archived
-            </TabsTrigger>
+            <TabsTrigger value="draft">Inactive</TabsTrigger>
           </TabsList>
           <div className="ml-auto flex items-center gap-2">
             <DropdownMenu>
@@ -167,12 +163,6 @@ const ProductList = ({ data }: any) => {
                 <DropdownMenuCheckboxItem>Archived</DropdownMenuCheckboxItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button size="sm" variant="outline" className="h-8 gap-1">
-              <File className="h-3.5 w-3.5" />
-              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                Export
-              </span>
-            </Button>
             <Button size="sm" className="h-8 gap-1">
               <PlusCircle className="h-3.5 w-3.5" />
               <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -183,15 +173,18 @@ const ProductList = ({ data }: any) => {
         </div>
         <TabsContent value="all" className="px-6">
           <Card x-chunk="dashboard-05-chunk-3" className="border-dashed">
-            <div className="flex flex-col space-y-3 md:flex-row justify-between p-6 px-2 md:px-7">
+            <div className="flex flex-col space-y-3 md:flex-row justify-between p-6 px-4 md:px-7">
               <div
                 x-chunk="dashboard-05-chunk-3"
                 className="flex flex-1 justify-between border-none"
               >
                 <CardHeader className="p-0">
                   <CardTitle>Products</CardTitle>
-                  <CardDescription>
+                  <CardDescription className="hidden md:flex md:text-sm">
                     Manage your products and view their sales performance.
+                  </CardDescription>
+                  <CardDescription className="md:hidden text-sm">
+                    Manage your products
                   </CardDescription>
                 </CardHeader>
               </div>

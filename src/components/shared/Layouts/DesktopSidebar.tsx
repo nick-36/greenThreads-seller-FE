@@ -33,7 +33,7 @@ const DesktopSidebar = () => {
       <div className="flex h-full max-h-screen flex-col gap-2">
         <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
           <Link href="/" className="flex items-center gap-2 font-semibold">
-            <div className="relative mx-auto z-20 flex items-center text-lg font-medium h-6 w-6 bg-slate-900 rounded">
+            <div className="relative mx-auto z-20 flex items-center text-lg font-medium h-8 w-8 bg-slate-900 rounded">
               <Image
                 src="/brandLogoV2.svg"
                 fill

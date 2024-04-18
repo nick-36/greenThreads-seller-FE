@@ -151,8 +151,8 @@ export default function DashboardPage() {
                     </CardContent>
                   </Card>
                 </div>
-                <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-7">
-                  <Card className="col-span-4">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                  <Card className="sm:col-span-2 lg:col-span-4">
                     <CardHeader>
                       <CardTitle>Overview</CardTitle>
                     </CardHeader>
@@ -160,7 +160,7 @@ export default function DashboardPage() {
                       <Overview />
                     </CardContent>
                   </Card>
-                  <Card className="col-span-4">
+                  <Card className="sm:col-span-2 lg:col-span-3">
                     <CardHeader>
                       <CardTitle>Recent Sales</CardTitle>
                       <CardDescription>

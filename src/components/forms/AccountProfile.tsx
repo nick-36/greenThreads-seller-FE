@@ -19,7 +19,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { UserValidation } from "@/lib/validation/userValidation";
 import * as z from "zod";
 import Image from "next/image";
-import { isBase64Image } from "@/lib/utils";
+import { cn, isBase64Image } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
 import { Icons } from "../ui/icons";
 import { useSignUp, useUser } from "@clerk/nextjs";
@@ -52,7 +52,6 @@ const AccountProfile = ({
   const form = useForm({
     resolver: zodResolver(UserValidation),
     defaultValues: useMemo(() => {
-      console.log(user, "USER");
       return {
         profileImg: "",
         firstName: "",
@@ -67,6 +66,7 @@ const AccountProfile = ({
 
   useEffect(() => {
     if (user) {
+      console.log(user, "USER");
       form?.reset({
         profileImg: user?.hasImage ? user?.imageUrl : "",
         firstName: user?.firstName || "",
@@ -80,26 +80,31 @@ const AccountProfile = ({
   }, [user?.id]);
 
   const onFormSubmit = async (values: any) => {
-    if (!isLoaded) {
-      return;
-    }
+    if (isSignUpFlow) {
+      if (!isLoaded) {
+        return;
+      }
 
-    try {
-      await signUp.create({
-        emailAddress: values.email,
-        password: values.password,
-        firstName: values?.firstName,
-        lastName: values?.lastName,
-        username: values?.userName,
-      });
+      try {
+        await signUp.create({
+          emailAddress: values.email,
+          password: values.password,
+          firstName: values?.firstName,
+          lastName: values?.lastName,
+          username: values?.userName,
+          phoneNumber: values?.mobile,
+        });
 
-      // send the email.
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+        // send the email.
+        // await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
 
-      // change the UI to our pending section.
-      setPendingVerification(true);
-    } catch (err: any) {
-      console.error(JSON.stringify(err, null, 2));
+        // change the UI to our pending section.
+        // setPendingVerification(true);
+      } catch (err: any) {
+        console.error(JSON.stringify(err, null, 2));
+      }
+    } else {
+      //TO DO CALL BACKEND API FOR UPDATE USER
     }
   };
 
@@ -190,11 +195,11 @@ const AccountProfile = ({
         </div>
       )}
       <Card className="w-full border-none shadow-none">
-        <CardContent>
+        <CardContent className="p-0">
           <Form {...form}>
             <form
               onSubmit={form?.handleSubmit(onFormSubmit)}
-              className="grid w-full items-start gap-6 pt-0"
+              className={cn("grid w-full items-start gap-6 md:pt-0")}
             >
               <FormField
                 control={form.control}
@@ -243,7 +248,11 @@ const AccountProfile = ({
                   </FormItem>
                 )}
               />
-              <div className="grid w-full md:grid-cols-2 items-start gap-6 overflow-auto md:px-10 pt-4">
+              <div
+                className={cn(
+                  "grid w-full md:grid-cols-2 items-start gap-6 overflow-auto md:px-10 pt-4 p-4"
+                )}
+              >
                 <FormField
                   control={form.control}
                   name="firstName"
@@ -294,7 +303,7 @@ const AccountProfile = ({
                           {...field}
                         />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="m-0" />
                     </FormItem>
                   )}
                 />
@@ -351,13 +360,13 @@ const AccountProfile = ({
                             {...field}
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="m-0" />
                       </FormItem>
                     )}
                   />
                 )}
               </div>
-              <div className="w-full grid place-items-center">
+              <div className="w-full grid place-items-center pb-4">
                 <Button type="submit" className="grid gap-2 md:min-w-80">
                   {ctaText}
                 </Button>

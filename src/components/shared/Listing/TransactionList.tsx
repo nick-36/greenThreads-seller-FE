@@ -123,7 +123,7 @@ const TransactionList = ({ data }: any) => {
         </div>
         <TabsContent value="week" className="px-6">
           <Card x-chunk="dashboard-05-chunk-3" className="border-dashed">
-            <div className="flex flex-col space-y-3 md:flex-row justify-between p-6 px-2 md:px-7">
+            <div className="flex flex-col space-y-3 md:flex-row justify-between p-6 px-4 md:px-7">
               <div
                 x-chunk="dashboard-05-chunk-3"
                 className="flex flex-1 justify-between border-none"

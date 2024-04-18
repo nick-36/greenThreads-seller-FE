@@ -19,11 +19,11 @@ const dummyStatsData = [
     subTitle: "04",
     icon: "/assets/delivery.svg",
   },
-  {
-    title: "View More",
-    subTitle: "04",
-    icon: "/assets/activity.svg",
-  },
+  // {
+  //   title: "View More",
+  //   subTitle: "04",
+  //   icon: "/assets/activity.svg",
+  // },
 ];
 
 export default function Home() {

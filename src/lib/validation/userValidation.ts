@@ -11,14 +11,14 @@ export const UserValidation = z.object({
   lastName: z
     .string()
     .min(2, { message: "LastName must be at least 2 characters." }),
-  username: z
-    .string({
-      required_error: "Username name is required",
-      invalid_type_error: "Username name must be a string",
-    })
-    .min(2, {
-      message: "Username must be at least 2 characters.",
-    }),
+  // username: z
+  //   .string({
+  //     required_error: "Username name is required",
+  //     invalid_type_error: "Username name must be a string",
+  //   })
+  //   .min(2, {
+  //     message: "Username must be at least 2 characters.",
+  //   }),
   email: z
     .string({
       required_error: "Email is required",
@@ -26,7 +26,7 @@ export const UserValidation = z.object({
     .email({ message: "Invalid email address" }),
   mobile: z.string().regex(phoneRegex, "Invalid Number!"),
   profileImg: z.string(),
-  password: z.string().min(8),
+  // password: z.string().min(8),
 });
 
 enum FormType {

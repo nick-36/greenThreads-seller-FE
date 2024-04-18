@@ -66,7 +66,7 @@ const DesktopHeader = () => {
                     isActive ? "bg-muted/10 " : ""
                   )}
                 >
-                  {iconMapping[link.icon]({ isActive })}
+                  {/* {iconMapping[link.icon]({ isActive })} */}
                   {link.name}
                 </Link>
               );
