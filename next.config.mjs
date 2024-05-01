@@ -1,4 +1,7 @@
 /** @type {import('next').NextConfig} */
+// @ts-ignore
+const isDev = process.env.NODE_ENV !== "production";
+
 const nextConfig = {
   reactStrictMode: false,
   images: {
@@ -23,5 +26,16 @@ const nextConfig = {
     ],
   },
 };
+
+if (isDev) {
+  nextConfig.rewrites = async () => {
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${process.env.BASE_API_URL}/api/:path*`, // Proxy to Backend
+      },
+    ];
+  };
+}
 
 export default nextConfig;

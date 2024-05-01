@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import {
   Table,
   TableBody,
@@ -20,13 +20,33 @@ import { DataTablePagination } from "./DataTablePagination";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  showPagination?: boolean;
+}
+
+function useSkipper() {
+  const shouldSkipRef = React.useRef(true);
+  const shouldSkip = shouldSkipRef.current;
+
+  // Wrap a function with this to skip a pagination reset temporarily
+  const skip = React.useCallback(() => {
+    shouldSkipRef.current = false;
+  }, []);
+
+  React.useEffect(() => {
+    shouldSkipRef.current = true;
+  });
+
+  return [shouldSkip, skip] as const;
 }
 
 export default function DataTable<TData, TValue>({
   columns,
-  data,
+  data: defaultData,
+  showPagination = true,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
+  const [data, setData] = React.useState<TData[]>(() => [...defaultData]);
+  const [autoResetPageIndex, skipAutoResetPageIndex] = useSkipper();
 
   const table = useReactTable({
     data,
@@ -35,6 +55,28 @@ export default function DataTable<TData, TValue>({
     onRowSelectionChange: setRowSelection,
     state: {
       rowSelection,
+    },
+    autoResetPageIndex,
+    meta: {
+      updateData: (rowIndex: number, columnId: string, value: any) => {
+        skipAutoResetPageIndex();
+        setData((old) => {
+          return old.map((row, index) => {
+            if (index === rowIndex) {
+              return {
+                ...old[rowIndex]!,
+                [columnId]: value,
+              };
+            }
+            return row;
+          });
+        });
+      },
+      removeRow: (rowIndex: number) => {
+        const setFilterFunc = (old: any[]) =>
+          old.filter((_row: any, index: number) => index !== rowIndex);
+        setData(setFilterFunc);
+      },
     },
   });
 
@@ -82,7 +124,7 @@ export default function DataTable<TData, TValue>({
           )}
         </TableBody>
       </Table>
-      <DataTablePagination table={table} />
+      {showPagination && <DataTablePagination table={table} />}
     </div>
   );
 }

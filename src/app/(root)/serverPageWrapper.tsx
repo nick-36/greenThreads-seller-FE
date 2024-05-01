@@ -23,16 +23,13 @@ const ServerPageWrapper = ({
       disableTransitionOnChange
     >
       <QueryClientProvider client={queryClient}>
-        {/* <div className="pb-16 md:pb-0"> */}
-        <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+        <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[220px_1fr]">
           <DesktopSidebar />
           <div className="flex flex-col overflow-hidden">
             <Header {...headerProps} />
             {children}
           </div>
-          {/* <MobileFooter links={mobileFooterLinks} /> */}
         </div>
-        {/* </div> */}
       </QueryClientProvider>
     </ThemeProvider>
   );

@@ -20,6 +20,7 @@ import {
   Package,
   ShoppingCart,
   BarChart,
+  Tag,
 } from "lucide-react";
 import { useClerk } from "@clerk/clerk-react";
 import { usePathname, useRouter } from "next/navigation";
@@ -36,6 +37,7 @@ const iconMapping: IconMapping = {
   revenue: (props: any) => <LineChart className="h-4 w-4" {...props} />,
   products: (props: any) => <Package className="h-4 w-4" {...props} />,
   barchart: (props: any) => <BarChart className="h-4 w-4" {...props} />,
+  tag: (props: any) => <Tag className="h-4 w-4" {...props} />,
 };
 
 const DesktopHeader = () => {
@@ -45,7 +47,7 @@ const DesktopHeader = () => {
   const [currPath, setCurrPath] = useState(pathname);
 
   return (
-    <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+    <header className="flex  h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
       <Sheet>
         <SheetTrigger asChild>
           <Button variant="outline" size="icon" className="shrink-0 md:hidden">
@@ -74,20 +76,6 @@ const DesktopHeader = () => {
           </nav>
         </SheetContent>
       </Sheet>
-      {/* <Link
-        href="#"
-        className="flex items-center gap-2 text-lg h-6 w-6 font-semibold"
-      >
-        <div className="ml-auto relative z-20 flex items-center text-lg font-medium h-6 w-6  bg-slate-900 rounded">
-          <Image
-            src="/brandLogoV2.svg"
-            fill
-            alt="green-thread-logo"
-            className="rounded"
-          />
-        </div>
-        <span className="sr-only">greenThreads</span>
-      </Link> */}
       <div className="ml-auto flex items-center gap-4">
         <ToggleTheme />
         <div className="md:hidden">

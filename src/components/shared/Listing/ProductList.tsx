@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 import {
   File,
   ListFilter,
@@ -31,9 +31,33 @@ import Image from "next/image";
 import { Badge } from "../../ui/badge";
 import { ColumnDef } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { FormControl } from "@/components/ui/form";
+import axios from "@/lib/utils/axios";
 
 const ProductList = ({ data }: any) => {
   const router = useRouter();
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const fileReader = new FileReader();
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setFiles(Array.from(e.target.files));
+
+      if (!file.type.includes("image")) return;
+
+      fileReader.onload = async (event) => {
+        const imageDataUrl = event.target?.result?.toString() || "";
+
+        // fieldChange(imageDataUrl);
+      };
+      fileReader.readAsDataURL(file);
+    }
+  };
+
   const columns: ColumnDef<any>[] = [
     {
       accessorKey: "image",
@@ -134,6 +158,17 @@ const ProductList = ({ data }: any) => {
     },
   ];
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get("/api/v1");
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchData();
+  }, []);
+
   return (
     <div>
       <Tabs defaultValue="all">
@@ -163,11 +198,30 @@ const ProductList = ({ data }: any) => {
                 <DropdownMenuCheckboxItem>Archived</DropdownMenuCheckboxItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button size="sm" className="h-8 gap-1">
+            <Link href="/products/add-product">
+              <Button size="sm" className="h-8 gap-1">
+                <PlusCircle className="h-3.5 w-3.5" />
+                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                  Add Product
+                </span>
+              </Button>
+            </Link>
+            <Button
+              size="sm"
+              className="h-8 gap-1"
+              onClick={() => inputRef?.current?.click()}
+            >
               <PlusCircle className="h-3.5 w-3.5" />
               <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                Add Product
+                Bulk Upload
               </span>
+              <Input
+                ref={inputRef}
+                type="file"
+                accept=".csv,.xlsx"
+                className="hidden"
+                onChange={(e: any) => handleFileChange(e)}
+              />
             </Button>
           </div>
         </div>

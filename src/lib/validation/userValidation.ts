@@ -4,21 +4,21 @@ const phoneRegex = new RegExp(
   /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/
 );
 
-export const UserValidation = z.object({
+export const UserValidationSignUp = z.object({
   firstName: z
     .string()
     .min(2, { message: "FirstName must be at least 2 characters." }),
   lastName: z
     .string()
     .min(2, { message: "LastName must be at least 2 characters." }),
-  // username: z
-  //   .string({
-  //     required_error: "Username name is required",
-  //     invalid_type_error: "Username name must be a string",
-  //   })
-  //   .min(2, {
-  //     message: "Username must be at least 2 characters.",
-  //   }),
+  username: z
+    .string({
+      required_error: "Username name is required",
+      invalid_type_error: "Username name must be a string",
+    })
+    .min(2, {
+      message: "Username must be at least 2 characters.",
+    }),
   email: z
     .string({
       required_error: "Email is required",
@@ -26,7 +26,31 @@ export const UserValidation = z.object({
     .email({ message: "Invalid email address" }),
   mobile: z.string().regex(phoneRegex, "Invalid Number!"),
   profileImg: z.string(),
-  // password: z.string().min(8),
+  password: z.string().min(8),
+});
+
+export const UserValidationProfileUpdate = z.object({
+  firstName: z
+    .string()
+    .min(2, { message: "FirstName must be at least 2 characters." }),
+  lastName: z
+    .string()
+    .min(2, { message: "LastName must be at least 2 characters." }),
+  username: z
+    .string({
+      required_error: "Username name is required",
+      invalid_type_error: "Username name must be a string",
+    })
+    .min(2, {
+      message: "Username must be at least 2 characters.",
+    }),
+  email: z
+    .string({
+      required_error: "Email is required",
+    })
+    .email({ message: "Invalid email address" }),
+  mobile: z.string().regex(phoneRegex, "Invalid Number!"),
+  profileImg: z.string(),
 });
 
 enum FormType {
@@ -68,6 +92,7 @@ export const SignInValidation = z.intersection(
   schemaConditions,
   defaultSignInSchema
 );
+
 // export const SignInValidation = z.object({
 //   email: z
 //     .string({

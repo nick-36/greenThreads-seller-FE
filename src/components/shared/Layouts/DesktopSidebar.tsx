@@ -2,7 +2,7 @@
 import React, { useEffect, useState, ReactElement } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Home, ShoppingCart, Package, LineChart, BarChart } from "lucide-react";
+import { Home, ShoppingCart, Package, LineChart, BarChart, Tag } from "lucide-react";
 import { mobileFooterLinks } from "@/lib/utils/mobileFooterLinks";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -17,6 +17,7 @@ const iconMapping: IconMapping = {
   revenue: (props: any) => <LineChart className="h-4 w-4" {...props} />,
   products: (props: any) => <Package className="h-4 w-4" {...props} />,
   barchart: (props: any) => <BarChart className="h-4 w-4" {...props} />,
+  tag: (props: any) => <Tag className="h-4 w-4" {...props} />,
 };
 
 const DesktopSidebar = () => {

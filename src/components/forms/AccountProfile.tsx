@@ -16,13 +16,16 @@ import {
 } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { UserValidation } from "@/lib/validation/userValidation";
+import {
+  UserValidationSignUp,
+  UserValidationProfileUpdate,
+} from "@/lib/validation/userValidation";
 import * as z from "zod";
 import Image from "next/image";
 import { cn, isBase64Image } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
-import { Icons } from "../ui/icons";
 import { useSignUp, useUser } from "@clerk/nextjs";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -48,9 +51,12 @@ const AccountProfile = ({
   const [pendingVerification, setPendingVerification] = useState(false);
   const { user } = useUser();
   const [code, setCode] = React.useState("");
+  console.log(user, "USER");
 
   const form = useForm({
-    resolver: zodResolver(UserValidation),
+    resolver: zodResolver(
+      showPasswordField ? UserValidationSignUp : UserValidationProfileUpdate
+    ),
     defaultValues: useMemo(() => {
       return {
         profileImg: "",
@@ -84,15 +90,45 @@ const AccountProfile = ({
       if (!isLoaded) {
         return;
       }
-
+      console.log(values, "VALUES");
       try {
         await signUp.create({
           emailAddress: values.email,
           password: values.password,
           firstName: values?.firstName,
           lastName: values?.lastName,
-          username: values?.userName,
-          phoneNumber: values?.mobile,
+          username: values?.username,
+          unsafeMetadata: {
+            phoneNumber: values?.mobile,
+          },
+        });
+
+        // send the email.
+        await signUp.prepareEmailAddressVerification({
+          strategy: "email_code",
+        });
+
+        // change the UI to our pending section.
+        setPendingVerification(true);
+      } catch (err: any) {
+        console.error(JSON.stringify(err, null, 2));
+      }
+    } else {
+      //TO DO CALL BACKEND API FOR UPDATE USER
+      if (!isLoaded) {
+        return;
+      }
+
+      try {
+        await signUp.update({
+          emailAddress: values.email,
+          password: values.password,
+          firstName: values?.firstName,
+          lastName: values?.lastName,
+          username: values?.username,
+          unsafeMetadata: {
+            phoneNumber: values?.mobile,
+          },
         });
 
         // send the email.
@@ -103,12 +139,10 @@ const AccountProfile = ({
       } catch (err: any) {
         console.error(JSON.stringify(err, null, 2));
       }
-    } else {
-      //TO DO CALL BACKEND API FOR UPDATE USER
     }
   };
 
-  async function onSubmit(values: z.infer<typeof UserValidation>) {
+  async function onSubmit(values: z.infer<typeof UserValidationSignUp>) {
     const blob = values.profileImg;
 
     const hasImageChanged = isBase64Image(blob);
@@ -128,14 +162,13 @@ const AccountProfile = ({
   }
 
   const onPressVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
     if (!isLoaded) {
       return;
     }
 
     try {
       const completeSignUp = await signUp.attemptEmailAddressVerification({
-        code,
+        code: "424242",
       });
       if (completeSignUp.status !== "complete") {
         /*  investigate the response, to see if there was an error
@@ -177,7 +210,7 @@ const AccountProfile = ({
           <h2 className="text-xl font-semibold tracking-tight">
             Enter the OTP received in your email
           </h2>
-          <OTPScreen />
+          <OTPScreen onPressVerify={onPressVerify} />
         </div>
       </div>
     );
@@ -234,7 +267,7 @@ const AccountProfile = ({
                         <Camera size={16} strokeWidth={1} absoluteStrokeWidth />
                       </Button>
                     </FormLabel>
-                    <FormControl className="flex-1 text-base-semibold text-gray-200">
+                    <FormControl className="flex-1 hidden text-base-semibold text-gray-200">
                       <Input
                         ref={inputRef}
                         type="file"
