@@ -17,13 +17,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronLeft, Upload } from "lucide-react";
+import { ChevronLeft, MoveUpRight, Upload } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ColumnDef } from "@tanstack/react-table";
 import DataTable from "@/components/shared/Table";
 import ProductCombinations from "./ProductCombinations";
 import { useFormContext } from "react-hook-form";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
 const categoriesColums: ColumnDef<any>[] = [
   {
@@ -60,6 +62,7 @@ const categoriesColums: ColumnDef<any>[] = [
 
 const Preview = ({ onSave, onDiscard }: any) => {
   const form = useFormContext();
+  const params = useParams();
 
   const categoriesData = [
     {
@@ -75,19 +78,37 @@ const Preview = ({ onSave, onDiscard }: any) => {
       className="border-none shadow-none md:p-6"
     >
       <div>
-        <div className="grid flex-1 p-4 items-start gap-4  sm:px-6 sm:py-0 md:gap-8">
+        <div className="grid flex-1 md:p-4 items-start gap-4  sm:px-6 sm:py-0 md:gap-8">
           <div className="mx-auto grid flex-1 auto-rows-max gap-4">
-            <div className="flex items-center gap-4">
-              <Button variant="outline" size="icon" className="h-7 w-7">
+            <div className="flex items-center gap-24">
+              {/* <Button variant="outline" size="icon" className="h-7 w-7">
                 <ChevronLeft className="h-4 w-4" />
                 <span className="sr-only">Back</span>
-              </Button>
-              <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                Pro Controller
-              </h1>
-              <Badge variant="outline" className="ml-auto sm:ml-0">
-                In stock
-              </Badge>
+              </Button> */}
+              <div className="flex-1 grid grid-cols-3">
+                <div className="flex gap-2 md:gap-4 col-span-2">
+                  <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
+                    Pro Controller
+                  </h1>
+                  <Badge variant="outline" className="ml-auto sm:ml-0">
+                    In stock
+                  </Badge>
+                </div>
+                {params.id && (
+                  <Link
+                    prefetch={false}
+                    href={`/products/${params.id}/inventory`}
+                    className="text-end"
+                  >
+                    <Button size="sm" className="h-8 gap-1">
+                      <span className="sm:not-sr-only sm:whitespace-nowrap">
+                        Inventory
+                      </span>
+                      <MoveUpRight className="h-3.5 w-3.5" />
+                    </Button>
+                  </Link>
+                )}
+              </div>
               <div className="hidden items-center gap-2 md:ml-auto md:flex">
                 <Button
                   type="button"
@@ -131,13 +152,14 @@ const Preview = ({ onSave, onDiscard }: any) => {
                                     {...field}
                                   />
                                 </FormControl>
+                                <FormMessage />
                               </FormItem>
                             );
                           }}
                         ></FormField>
                       </div>
 
-                      <div className="grid col-span-2 gap-3">
+                      <div className="grid col-span-2 md:col-span-1 gap-3">
                         <FormField
                           control={form.control}
                           name="description"
@@ -160,7 +182,7 @@ const Preview = ({ onSave, onDiscard }: any) => {
                           }}
                         />
                       </div>
-                      <div className="grid gap-3">
+                      <div className="grid col-span-2  md:col-span-1 gap-3">
                         <FormField
                           control={form.control}
                           name="retailPrice"
@@ -238,12 +260,11 @@ const Preview = ({ onSave, onDiscard }: any) => {
                     </div>
                   </CardContent>
                 </Card>
-                {/* <ProductCategoryInfo form={form} isFormDisabled={true} /> */}
-                <Card>
+                <Card className="overflow-x-hidden">
                   <CardHeader>
                     <CardTitle>Product Category</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="h-full flex-1 flex-col md:flex">
                     <DataTable
                       columns={categoriesColums}
                       data={categoriesData}
@@ -251,20 +272,22 @@ const Preview = ({ onSave, onDiscard }: any) => {
                     />
                   </CardContent>
                 </Card>
-                <Card
-                  x-chunk="dashboard-07-chunk-1"
-                  className="overflow-x-hidden"
-                >
-                  <CardHeader>
-                    <CardTitle>Variations</CardTitle>
-                    <CardDescription>
-                      Configure Products Variations
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="h-full flex-1 flex-col md:flex p-4">
-                    <ProductCombinations form={form} isDisabled={true} />
-                  </CardContent>
-                </Card>
+                {form.getValues("combinations")?.length > 0 && (
+                  <Card
+                    x-chunk="dashboard-07-chunk-1"
+                    className="overflow-x-hidden"
+                  >
+                    <CardHeader>
+                      <CardTitle>Variations</CardTitle>
+                      <CardDescription>
+                        Configure Products Variations
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="h-full flex-1 flex-col md:flex p-4">
+                      <ProductCombinations isDisabled={true} />
+                    </CardContent>
+                  </Card>
+                )}
               </div>
               <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
                 {/* PRODUCT STATUS */}
@@ -362,10 +385,10 @@ const Preview = ({ onSave, onDiscard }: any) => {
                 </Card>
               </div>
               <div className="flex items-center justify-center gap-2 md:hidden">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={onDiscard}>
                   Discard
                 </Button>
-                <Button size="sm" type="submit">
+                <Button size="sm" type="button" onClick={onSave}>
                   Save Product
                 </Button>
               </div>

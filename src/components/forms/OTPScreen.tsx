@@ -29,8 +29,6 @@ const FormSchema = z.object({
 });
 
 const OTPScreen = ({ onPressVerify }: any) => {
-  const { toast } = useToast();
-
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -38,19 +36,7 @@ const OTPScreen = ({ onPressVerify }: any) => {
     },
   });
   function onSubmit(data: z.infer<typeof FormSchema>) {
-    onPressVerify();
-    // toast({
-    //   title: "You submitted the following values:",
-    //   description: (
-    //     <pre className="mt-2 w-[340px] rounded-md bg-slate-900 p-4">
-    //       <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-    //     </pre>
-    //   ),
-    // });
-    // toast({
-    //   title: "Uh oh!",
-    //   description: "Wrong code! Let's try that again..",
-    // });
+    onPressVerify(data.pin);
   }
   return (
     <Form {...form}>

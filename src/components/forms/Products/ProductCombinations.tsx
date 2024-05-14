@@ -1,5 +1,8 @@
-import DataTable from "@/components/shared/Table/Table";
 import React, { useEffect, useState } from "react";
+import { useFieldArray, useFormContext } from "react-hook-form";
+import { Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import DataTable from "@/components/shared/Table/Table";
 import {
   FormControl,
   FormField,
@@ -7,170 +10,171 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useFieldArray, useFormContext } from "react-hook-form";
-import { Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
-const ProductCombinations = ({ isDisabled = false }: any) => {
+
+interface ProductCombinationsProps {
+  isDisabled?: boolean;
+}
+
+interface Column {
+  id: string;
+  accessorKey: string;
+  header: string;
+  cell?: React.FC<CellProps>;
+}
+
+interface CellProps {
+  table: any;
+  row: {
+    original: any;
+    index: number;
+    id: string;
+  };
+  column: { id: string };
+}
+
+const ProductCombinations: React.FC<ProductCombinationsProps> = ({
+  isDisabled = false,
+}) => {
   const form = useFormContext();
-  const { fields, append, remove } = useFieldArray({
+  const { fields, remove } = useFieldArray({
     control: form.control,
     name: "combinations",
   });
+  const combinations = form.getValues("combinations");
 
-  const generateColumns = (variationsData: any) => {
-    const columns: any = [];
+  const EditableCell: React.FC<CellProps> = ({
+    table,
+    row: { index, id: rowId },
+    column: { id },
+  }) => {
+    const { getValues, setValue: formSetValue } = useFormContext();
+    const formValue = getValues(`combinations.${rowId}.availableStock`);
 
-    const idColumnIndex = variationsData.findIndex(
-      (column: any) => column === "id"
+    const [value, setValue] = useState(formValue);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setValue(Number(e.target.value));
+    };
+
+    const onBlur = (field: any) => {
+      table.options.meta?.updateData(index, id, value);
+      field.onChange(value);
+    };
+
+    useEffect(() => {
+      setValue(formValue);
+    }, [formValue]);
+
+    return (
+      <FormField
+        name={`combinations.${rowId}.availableStock`}
+        control={form.control}
+        render={({ field }) => (
+          <FormItem className="col-span-1 md:max-w-28">
+            <FormLabel
+              htmlFor={`combinations.${rowId}.availableStock`}
+              className="sr-only"
+            >
+              stock
+            </FormLabel>
+            <FormControl>
+              <Input
+                id={`combinations.${rowId}.availableStock`}
+                // type="number"
+                onChange={handleChange}
+                defaultValue={formValue}
+                onBlur={() => onBlur(field)}
+                value={value}
+                disabled={isDisabled}
+              />
+            </FormControl>
+          </FormItem>
+        )}
+      />
     );
+  };
 
-    if (idColumnIndex !== -1 && idColumnIndex !== 0) {
-      const idColumn = variationsData.splice(idColumnIndex, 1)[0];
-      variationsData.unshift(idColumn);
+  const generateColumns = ({ baseColumns, dynamicColums }: any): Column[] => {
+    const defaultColumn = (type: string) => ({
+      id: type,
+      accessorKey: type,
+      header: type.charAt(0).toUpperCase() + type.slice(1),
+    });
+    const columns: Column[] = [];
+    const encounteredIds: Set<string> = new Set();
+
+    // Check if the 'id' column exists and add it as the first column
+    const idIndex = variationTypes.indexOf("id");
+    if (idIndex !== -1) {
+      columns.push({
+        ...defaultColumn("id"),
+        cell: ({ row }) => {
+          const { id } = row?.original;
+          return <p>{id?.replace(/-/g, "").substring(0, 6)}</p>;
+        },
+      });
+      // Add 'id' to encounteredIds
+      encounteredIds.add("id");
+      // Remove 'id' from variationTypes
+      variationTypes.splice(idIndex, 1);
     }
 
-    // Extract all unique variation types
-    const variationTypes = variationsData.reduce((types: any, column: any) => {
-      if (!types.includes(column)) {
-        types.push(column);
-      }
-      return types;
-    }, []);
-
-    // Generate column objects for each variation type
-    variationTypes.forEach((type: any) => {
-      if (type === "stock") {
-        columns.push({
-          id: type,
-          accessorKey: type,
-          header: type.charAt(0).toUpperCase() + type.slice(1),
-          cell: (props: any) => {
-            return <EditableCell {...props} />;
-          },
-        });
-      } else if (type === "action") {
-        const removeRow = (row: any, table: any) => {
-          remove(row.index);
-          table.options.meta?.removeRow(row.index);
-        };
-        columns.push({
-          id: type,
-          accessorKey: type,
-          header: type.charAt(0).toUpperCase() + type.slice(1),
-          cell: ({ row, table }: any) => {
-            return (
-              <Button variant={"ghost"} disabled={isDisabled}>
-                <Trash2
-                  onClick={() => {
-                    removeRow(row, table);
-                  }}
-                />
-              </Button>
-            );
-          },
-        });
-      } else if (type === "id") {
-        columns.push({
-          id: type,
-          accessorKey: type,
-          header: type.charAt(0).toUpperCase() + type.slice(1),
-          cell: ({ row }: any) => {
-            const { id } = row?.original;
-            const shortId = id.replace(/-/g, "").substring(0, 6);
-            return <p>{shortId}</p>;
-          },
-        });
-      } else if (type === "name") {
-        columns.push({
-          id: type,
-          accessorKey: type,
-          header: type.charAt(0).toUpperCase() + type.slice(1),
-          cell: ({ row }: any) => {
-            const { name } = row?.original;
-            return <p>{name}</p>;
-          },
-        });
-      } else {
-        columns.push({
-          id: type,
-          accessorKey: type,
-          header: type.charAt(0).toUpperCase() + type.slice(1),
-        });
-      }
+    dynamicColums.forEach((type: string) => {
+      columns.push({ ...defaultColumn(type.toLowerCase()) });
     });
 
+    // Generate columns for other variation types
+    baseColumns.forEach((type: string) => {
+      if (!encounteredIds.has(type)) {
+        switch (type) {
+          case "availableStock":
+            columns.push({ ...defaultColumn(type), cell: EditableCell });
+            break;
+          case "action":
+            const removeRow = (row: any, table: any) => {
+              remove(row.index);
+              table.options.meta?.removeRow(row.index);
+            };
+            columns.push({
+              ...defaultColumn(type),
+              cell: ({ row, table }) => (
+                <Button
+                  variant={"ghost"}
+                  disabled={fields.length === 1 || isDisabled}
+                  onClick={() => removeRow(row, table)}
+                >
+                  <Trash2 />
+                </Button>
+              ),
+            });
+            break;
+          default:
+            <></>;
+        }
+        // Add the column id to encounteredIds
+        encounteredIds.add(type);
+      }
+    });
     return columns;
   };
 
-  const EditableCell: any = React.memo(
-    ({ table, row: { index, id: rowId }, column: { id } }: any) => {
-      const { getValues } = useFormContext();
-      const formValue = getValues(`combinations.${rowId}.stock`);
-      const [value, setValue] = React.useState(formValue);
+  // const variationTypes = Object.keys(combinations?.[0] ?? {});
+  const variationTypes = form.getValues("variations").map((item: any) => {
+    return item.variantName;
+  });
+  const columns = generateColumns({
+    dynamicColums: variationTypes,
+    baseColumns: ["availableStock", "action"],
+  });
 
-      const handleChange = (e: any) => {
-        setValue(Number(e.target.value));
-      };
+  console.log(columns,combinations, "COLUMNS");
 
-      const onBlur = (field: any) => {
-        table.options.meta?.updateData(index, id, value);
-        field.onChange(value);
-      };
-
-      React.useEffect(() => {
-        setValue(formValue);
-      }, [formValue]);
-
-      return (
-        <FormField
-          name={`combinations.${rowId}.stock`}
-          control={form.control}
-          render={({ field }: any) => (
-            <FormItem className="col-span-1 md:max-w-28">
-              <FormLabel
-                htmlFor={`combinations.${rowId}.stock`}
-                className="sr-only"
-              >
-                stock
-              </FormLabel>
-              <FormControl>
-                <Input
-                  id={`combinations.${rowId}.stock`}
-                  type="number"
-                  onChange={handleChange}
-                  defaultValue={0}
-                  onBlur={(filed) => {
-                    onBlur(field);
-                  }}
-                  value={value}
-                  disabled={isDisabled}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-      );
-    }
+  return (
+    <div className="overflow-x-hidden">
+      <DataTable columns={columns} data={combinations} showPagination={false} />
+    </div>
   );
-
-  const columsToGenerated = React.useMemo(() => {
-    const defaultColumns: { [key: string]: string } = {
-      ...fields?.[0],
-      stock: "stock",
-    };
-    if (fields.length > 1) {
-      defaultColumns["action"] = "action";
-    }
-    return defaultColumns;
-  }, [fields]);
-
-  const columns = React.useMemo(
-    () => generateColumns(Object.keys(columsToGenerated)),
-    [fields]
-  );
-
-  return <DataTable columns={columns} data={fields} showPagination={false} />;
 };
 
 export default ProductCombinations;

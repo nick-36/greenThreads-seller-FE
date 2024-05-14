@@ -21,7 +21,8 @@ import {
 } from "@/components/ui/form";
 import { useSignIn } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { z } from "zod";
+import { useToast } from "../ui/use-toast";
+import { ToastAction } from "@radix-ui/react-toast";
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {
   step?: "SIGN_IN" | "SIGN_UP" | "FORGOT_PASSWORD";
@@ -40,6 +41,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const { isLoaded, signIn, setActive } = useSignIn();
   const router = useRouter();
+  const { toast } = useToast();
 
   // async function onSubmit(formValues: any) {
   //   ctaCallBack(formValues);
@@ -57,6 +59,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   // form.setValue("_step", "SIGN_IN");
 
   const onSubmit = async (values: any) => {
+    setIsLoading(true);
     if (!isLoaded) {
       return;
     }
@@ -76,8 +79,15 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
         console.log(result);
       }
     } catch (err: any) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: err.errors[0].message ?? "",
+        duration: 2000,
+      });
       console.error("error", err.errors[0].longMessage);
     }
+    setIsLoading(false);
   };
 
   return (

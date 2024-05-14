@@ -27,9 +27,9 @@ export default function Stepper({ steps, goTo }: any) {
                 }}
               >
                 <span className="flex items-center px-6 py-4 text-sm font-medium">
-                  <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-green-600 group-hover:bg-green-800">
+                  <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-green-600 group-hover:bg-green-800">
                     <CheckIcon
-                      className="h-6 w-6 text-white"
+                      className="h-4 w-4 text-white"
                       aria-hidden="true"
                     />
                   </span>

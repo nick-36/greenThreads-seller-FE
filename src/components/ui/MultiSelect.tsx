@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { X } from "lucide-react";
-
 import { Badge } from "@/components/ui/badge";
 import {
   Command,
@@ -12,11 +11,6 @@ import {
   CommandEmpty,
 } from "@/components/ui/command";
 import { Command as CommandPrimitive } from "cmdk";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 
 type OPTION = Record<"value" | "label", string>;
 
@@ -35,10 +29,14 @@ const MultiSelect: React.FC<Props> = ({
 }) => {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [open, setOpen] = React.useState(false);
-  const [selected, setSelected] = React.useState<OPTION[]>(
-    selectedValues?.length > 0 ? selectedValues : [options[0]]
-  );
   const [inputValue, setInputValue] = React.useState("");
+  const [selected, setSelected] = React.useState<OPTION[]>(() => {
+    if (selectedValues?.length > 0) {
+      return selectedValues;
+    } else {
+      return [options?.[0]];
+    }
+  });
 
   const handleUnselect = React.useCallback((opt: OPTION) => {
     setSelected((prev) => prev.filter((s) => s.value !== opt.value));
@@ -69,8 +67,9 @@ const MultiSelect: React.FC<Props> = ({
   React.useEffect(() => {
     onChange(selected);
   }, [selected]);
+  console.log(options,selectedValues, "OPTIONS");
 
-  const selectables = options.filter(
+  const selectables = options?.filter(
     (option) => !selected.some((selected) => selected.value === option.value)
   );
 
@@ -119,7 +118,7 @@ const MultiSelect: React.FC<Props> = ({
           <div className="relative w-full z-10 top-0 rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in">
             <CommandList>
               <CommandEmpty>No More Data...</CommandEmpty>
-              <CommandGroup className="h-full overflow-auto">
+              <CommandGroup className="overflow-auto">
                 {selectables.map((opt: OPTION) => {
                   return (
                     <CommandItem

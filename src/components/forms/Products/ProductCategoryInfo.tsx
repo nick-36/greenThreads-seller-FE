@@ -1,21 +1,12 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
-  Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Command,
   CommandEmpty,
@@ -37,10 +28,11 @@ import axios from "@/lib/utils/axios";
 import { toast } from "@/components/ui/use-toast";
 import { Category } from "@/lib/utils/types/CategoryType";
 import { useFormContext } from "react-hook-form";
+import { Icons } from "@/components/ui/icons";
 
 const fetchCategoryByParentId = async (parentId: string) => {
   try {
-    const response = await axios.get(`/api/v1/subcategories/${parentId}`);
+    const response = await axios.get(`/subcategories/${parentId}`);
     return response?.data;
   } catch (error) {
     toast({
@@ -52,8 +44,8 @@ const fetchCategoryByParentId = async (parentId: string) => {
 
 const fetchCategories = async () => {
   try {
-    const response = await axios.get("/api/v1/categories");
-    return response?.data;
+    const response = await axios.get("/categories");
+    return response?.data.categories;
   } catch (error: any) {
     toast({
       title: `Uh oh! `,
@@ -103,11 +95,14 @@ const ProductCategoryInfo = ({ isFormDisabled = false }: any) => {
                           variant="outline"
                           role="combobox"
                           className={cn(
-                            "w-[200px] justify-between",
-                            !field.value && "text-muted-foreground"
+                            "sm:w-full md:w-[200px] justify-between",
+                            !field.value.id && "text-muted-foreground"
                           )}
                           disabled={!categories.length || isFormDisabled}
                         >
+                          {isLoadingCat && (
+                            <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                          )}
                           {field.value?.id
                             ? categories.find(
                                 (cat: Category) => cat.id === field.value?.id
@@ -117,17 +112,29 @@ const ProductCategoryInfo = ({ isFormDisabled = false }: any) => {
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[200px] p-0">
+                    <PopoverContent className="sm:w-full md:w-[200px] p-0">
                       <Command>
                         <CommandInput placeholder="Search Category..." />
                         <CommandList>
                           <CommandEmpty>No Category found.</CommandEmpty>
                           <CommandGroup>
-                            {categories.map((cat: Category) => (
+                            {categories?.map((cat: Category) => (
                               <CommandItem
                                 value={cat.id}
                                 key={cat.id}
                                 onSelect={() => {
+                                  form.resetField("subCategoryId", {
+                                    defaultValue: {
+                                      id: null,
+                                      name: "",
+                                    },
+                                  });
+                                  form.resetField("subSubCategoryId", {
+                                    defaultValue: {
+                                      id: null,
+                                      name: "",
+                                    },
+                                  });
                                   form.setValue("categoryId", {
                                     id: cat.id,
                                     name: cat?.name,
@@ -159,67 +166,79 @@ const ProductCategoryInfo = ({ isFormDisabled = false }: any) => {
             <FormField
               control={form.control}
               name="subCategoryId"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Sub Category</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
-                            "w-[200px] justify-between",
-                            !field.value?.id && "text-muted-foreground"
-                          )}
-                          disabled={!categories.length || isFormDisabled}
-                        >
-                          {field.value?.id
-                            ? subCategories.find(
-                                (subCat: Category) =>
-                                  subCat.id === field.value?.id
-                              )?.name
-                            : "Select Category"}
-                          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[200px] p-0">
-                      <Command>
-                        <CommandInput placeholder="Search Category..." />
-                        <CommandEmpty>No Sub Category found.</CommandEmpty>
-                        <CommandGroup>
-                          <CommandList>
-                            {subCategories.map((subCat: Category) => (
-                              <CommandItem
-                                value={subCat.id}
-                                key={subCat.id}
-                                onSelect={() => {
-                                  form.setValue("subCategoryId", {
-                                    id: subCat.id,
-                                    name: subCat.name,
-                                  });
-                                }}
-                              >
-                                <CheckIcon
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
+              render={({ field }) => {
+                console.log(field, "FIElD");
+                return (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Sub Category</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className={cn(
+                              "sm:w-full md:w-[200px] justify-between",
+                              !field.value?.id && "text-muted-foreground"
+                            )}
+                            disabled={!categories.length || isFormDisabled}
+                          >
+                            {isLoadingCat && (
+                              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                            )}
+                            {field.value?.id
+                              ? subCategories.find(
+                                  (subCat: Category) =>
                                     subCat.id === field.value?.id
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                                {subCat.name}
-                              </CommandItem>
-                            ))}
-                          </CommandList>
-                        </CommandGroup>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
+                                )?.name
+                              : "Select Category"}
+                            <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="sm:w-full md:w-[200px] p-0">
+                        <Command>
+                          <CommandInput placeholder="Search Category..." />
+                          <CommandEmpty>No Sub Category found.</CommandEmpty>
+                          <CommandGroup>
+                            <CommandList>
+                              {subCategories.map((subCat: Category) => (
+                                <CommandItem
+                                  value={subCat.id}
+                                  key={subCat.id}
+                                  onSelect={() => {
+                                    form.resetField("subSubCategoryId", {
+                                      defaultValue: {
+                                        id: null,
+                                        name: "",
+                                      },
+                                    });
+                                    form.setValue("subCategoryId", {
+                                      id: subCat.id,
+                                      name: subCat.name,
+                                    });
+                                  }}
+                                >
+                                  <CheckIcon
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      subCat.id === field.value?.id
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  {subCat.name}
+                                </CommandItem>
+                              ))}
+                            </CommandList>
+                          </CommandGroup>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
           </div>
           <div className="grid gap-3">
@@ -236,11 +255,14 @@ const ProductCategoryInfo = ({ isFormDisabled = false }: any) => {
                           variant="outline"
                           role="combobox"
                           className={cn(
-                            "w-[200px] justify-between",
+                            "sm:w-full md:w-[200px] justify-between",
                             !field.value?.id && "text-muted-foreground"
                           )}
                           disabled={!categories.length || isFormDisabled}
                         >
+                          {isLoadingCat && (
+                            <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                          )}
                           {field.value?.id
                             ? subSubCategories.find(
                                 (cat: Category) => cat.id === field.value?.id
@@ -250,7 +272,7 @@ const ProductCategoryInfo = ({ isFormDisabled = false }: any) => {
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[200px] p-0">
+                    <PopoverContent className="sm:w-full md:w-[200px] p-0">
                       <Command>
                         <CommandInput placeholder="Search Category..." />
                         <CommandEmpty>No Sub Sub Category found.</CommandEmpty>

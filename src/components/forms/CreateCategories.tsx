@@ -32,15 +32,18 @@ import { useToast } from "../ui/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Icons } from "../ui/icons";
 import { z } from "zod";
+import { useRouter } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 type CategoryCreateSchemaType = z.infer<typeof categoryValidationSchema>;
 
 const CreateCategories = () => {
   const [files, setFiles] = useState<File[]>([]);
   const { toast } = useToast();
+  const router = useRouter();
   const categoryMutation = useMutation({
     mutationFn: async (payload: CategoryCreateSchemaType) => {
-      return await axios.post("/api/v1/categories/create", payload);
+      return await axios.post("/categories", payload);
     },
     onError: (error: any) => {
       const errorData = error.response.data;
@@ -57,15 +60,12 @@ const CreateCategories = () => {
       });
     },
   });
-  const {
-    data: categories = [],
-    isLoading,
-  } = useQuery({
-    queryKey: ["categories"],
+  const { data: categories = [], isLoading } = useQuery({
+    queryKey: ["categories", categoryMutation.isSuccess],
     queryFn: async () => {
       try {
-        const response = await axios.get("/api/v1/categories");
-        return response?.data;
+        const response = await axios.get("/categories");
+        return response?.data?.categories;
       } catch (error: any) {
         toast({
           title: `Uh oh! `,

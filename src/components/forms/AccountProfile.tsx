@@ -28,32 +28,34 @@ import { useSignUp, useUser } from "@clerk/nextjs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import OTPScreen from "./OTPScreen";
 import { Camera } from "lucide-react";
+import OTPScreen from "./OTPScreen";
+import { Icons } from "../ui/icons";
+import { useToast } from "../ui/use-toast";
 
 interface AccountProfileProps {
   ctaText: string;
   showPasswordField?: boolean;
   isSignUpFlow?: boolean;
 }
+
+type UserFormData = z.infer<typeof UserValidationSignUp>;
+
 const AccountProfile = ({
   ctaText,
   showPasswordField = false,
   isSignUpFlow = false,
 }: AccountProfileProps) => {
   const [files, setFiles] = useState<File[]>([]);
-  //   const { startUpload } = useUploadThing("media");
   const router = useRouter();
-  const pathname = usePathname();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const { isLoaded, signUp, setActive } = useSignUp();
   const [pendingVerification, setPendingVerification] = useState(false);
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const { user } = useUser();
-  const [code, setCode] = React.useState("");
-  console.log(user, "USER");
+  const { toast } = useToast();
 
-  const form = useForm({
+  const form = useForm<UserFormData>({
     resolver: zodResolver(
       showPasswordField ? UserValidationSignUp : UserValidationProfileUpdate
     ),
@@ -68,11 +70,11 @@ const AccountProfile = ({
         password: "",
       };
     }, [user]),
+    mode: "onBlur",
   });
 
   useEffect(() => {
     if (user) {
-      console.log(user, "USER");
       form?.reset({
         profileImg: user?.hasImage ? user?.imageUrl : "",
         firstName: user?.firstName || "",
@@ -85,12 +87,11 @@ const AccountProfile = ({
     }
   }, [user?.id]);
 
-  const onFormSubmit = async (values: any) => {
+  const onFormSubmit = async (values: UserFormData) => {
+    setIsLoading(true);
     if (isSignUpFlow) {
-      if (!isLoaded) {
-        return;
-      }
-      console.log(values, "VALUES");
+      if (!isLoaded) return;
+
       try {
         await signUp.create({
           emailAddress: values.email,
@@ -108,7 +109,6 @@ const AccountProfile = ({
           strategy: "email_code",
         });
 
-        // change the UI to our pending section.
         setPendingVerification(true);
       } catch (err: any) {
         console.error(JSON.stringify(err, null, 2));
@@ -140,7 +140,9 @@ const AccountProfile = ({
         console.error(JSON.stringify(err, null, 2));
       }
     }
+    setIsLoading(false);
   };
+  console.log(form.formState.errors, "FORM");
 
   async function onSubmit(values: z.infer<typeof UserValidationSignUp>) {
     const blob = values.profileImg;
@@ -161,14 +163,14 @@ const AccountProfile = ({
     // }
   }
 
-  const onPressVerify = async (e: React.FormEvent) => {
+  const onPressVerify = async (otp: string) => {
     if (!isLoaded) {
       return;
     }
 
     try {
       const completeSignUp = await signUp.attemptEmailAddressVerification({
-        code: "424242",
+        code: otp,
       });
       if (completeSignUp.status !== "complete") {
         /*  investigate the response, to see if there was an error
@@ -181,8 +183,18 @@ const AccountProfile = ({
       }
     } catch (err: any) {
       console.error(JSON.stringify(err, null, 2));
+      toast({
+        title: "You submitted the following values:",
+        description: (
+          <pre className="mt-2 w-[340px] rounded-md bg-slate-900 p-4">
+            <code className="text-white">{JSON.stringify(otp, null, 2)}</code>
+          </pre>
+        ),
+        duration: 3000,
+      });
     }
   };
+
   const handleImage = (
     e: ChangeEvent<HTMLInputElement>,
     fieldChange: (value: string) => void
@@ -348,10 +360,15 @@ const AccountProfile = ({
                       <FormLabel>Mobile</FormLabel>
                       <FormControl>
                         <Input
+                          {...field}
                           type="number"
                           placeholder="Mobile number (e.g., +123456789)"
                           className="placeholder:text-gray-300 placeholder:font-light"
-                          {...field}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val.length > 10) return;
+                            field.onChange(val);
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
@@ -400,7 +417,14 @@ const AccountProfile = ({
                 )}
               </div>
               <div className="w-full grid place-items-center pb-4">
-                <Button type="submit" className="grid gap-2 md:min-w-80">
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  // className="grid gap-2 md:min-w-80"
+                >
+                  {isLoading && (
+                    <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                  )}
                   {ctaText}
                 </Button>
               </div>

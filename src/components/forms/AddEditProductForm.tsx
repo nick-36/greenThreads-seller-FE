@@ -79,7 +79,7 @@ import Stepper from "../shared/Stepper";
 type Variant = {
   label: string;
   value: string;
-  options: string[];
+  variationOptions: string[];
   stock: number;
   originalPrice: number;
 };

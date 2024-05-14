@@ -1,9 +1,10 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -41,13 +42,12 @@ function useSkipper() {
 
 export default function DataTable<TData, TValue>({
   columns,
-  data: defaultData,
+  data: defaultData = [],
   showPagination = true,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [data, setData] = React.useState<TData[]>(() => [...defaultData]);
   const [autoResetPageIndex, skipAutoResetPageIndex] = useSkipper();
-
   const table = useReactTable({
     data,
     columns,
@@ -76,6 +76,10 @@ export default function DataTable<TData, TValue>({
         const setFilterFunc = (old: any[]) =>
           old.filter((_row: any, index: number) => index !== rowIndex);
         setData(setFilterFunc);
+      },
+      addRow: (newRow: any) => {
+        const setFunc = (old: TData[]) => [...old, newRow];
+        setData(setFunc);
       },
     },
   });

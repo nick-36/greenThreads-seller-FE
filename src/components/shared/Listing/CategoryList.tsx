@@ -13,64 +13,52 @@ import DataTable from "../Table/Table";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import Link from "next/link";
+import { Category } from "@/lib/utils/types/CategoryType";
 
-const CategoryList = () => {
-  const data = [
-    {
-      id: "abc",
-      categoryName: "Men",
-      desc: "Sale",
-      icon: "/assets/bell.svg",
-    },
-    {
-      id: "728ed52f",
-      categoryName: "women",
-      desc: "Sale",
-      icon: "/assets/bell.svg",
-    },
-    {
-      id: "728ed52f",
-      categoryName: "Clothes",
-      desc: "Sale",
-      icon: "/assets/bell.svg",
-    },
-  ];
+type CategoryListProps = {
+  categories: Category[];
+};
 
+const CategoryList = ({ categories }: CategoryListProps) => {
   const columns: ColumnDef<any>[] = [
     {
-      id: "categoryName",
-      accessorKey: "categoryName",
+      id: "name",
+      accessorKey: "name",
       header: "Name",
       cell: ({ row }) => {
-        const { categoryName } = row?.original;
-        return (
-          <>
-            <div className="font-medium">{categoryName}</div>
-          </>
-        );
+        const { name } = row?.original;
+        return <div className="font-medium">{name}</div>;
       },
     },
     {
-      accessorKey: "categoryDesc",
+      id: "description",
+      accessorKey: "description",
       header: "Description",
       cell: ({ row }) => {
-        const { desc } = row?.original;
+        const { description } = row?.original;
         return (
           <>
-            <div className="sm:table-cell">{desc}</div>
+            <div className="sm:table-cell">{description || "-"}</div>
           </>
         );
       },
     },
     {
-      accessorKey: "icon",
-      header: "Icon",
+      id: "categoryImg",
+      accessorKey: "categoryImg",
+      header: "Image",
       cell: ({ row }) => {
-        const { icon } = row?.original;
+        const { categoryImg } = row?.original;
 
         return (
           <div className="sm:table-cell">
-            <Image src={icon} width={24} height={24} alt="catIcon" />
+            <Image
+              src={categoryImg ?? "/assets/placeholder.svg"}
+              width={24}
+              height={24}
+              alt="category icon"
+              className="rounded-sm"
+            />
           </div>
         );
       },
@@ -78,7 +66,7 @@ const CategoryList = () => {
   ];
   return (
     <div>
-      <Card x-chunk="dashboard-05-chunk-3" className="border-none">
+      <Card x-chunk="dashboard-05-chunk-3" className="border-none shadow-none">
         <CardContent className="p-4">
           <div className="flex flex-col space-y-3 md:flex-row justify-between p-6 px-2 md:px-5">
             <div
@@ -102,7 +90,7 @@ const CategoryList = () => {
             </div>
           </div>
           <Card className="border-dashed">
-            <DataTable columns={columns} data={data} />
+            <DataTable columns={columns} data={categories} />
           </Card>
         </CardContent>
       </Card>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import {
   FormControl,
@@ -18,103 +18,86 @@ import { Button } from "../ui/button";
 import MultiSelect from "../ui/MultiSelect";
 import { useFieldArray } from "react-hook-form";
 import { PlusCircle, Trash2 } from "lucide-react";
+import axios from "@/lib/utils/axios";
+import { toast } from "../ui/use-toast";
+import { useQuery } from "@tanstack/react-query";
+import { Icons } from "../ui/icons";
+import { useParams } from "next/navigation";
+import { cn } from "@/lib/utils";
+
+type VariationType = { label: string; value: string };
+
+const fetchVariations = async () => {
+  try {
+    const response = await axios.get("/products/variations");
+    return response?.data;
+  } catch (error: any) {
+    toast({
+      title: `Uh oh! `,
+      description: "Failed To Fetch Variations!!",
+    });
+  }
+};
 
 const VariantForm = () => {
   const form = useFormContext();
+  const params = useParams();
+  const isAddVariationDisabled = params?.id ? true : false;
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "variations",
   });
+  const { data: variations = [], isLoading: isLoading } = useQuery({
+    queryKey: ["variations"],
+    queryFn: fetchVariations,
+  });
 
   const watchVariantType = (variantIndex: number) =>
-    form.watch(`variations.${variantIndex}.type`);
+    form.watch(`variations.${variantIndex}.variantId`);
 
   const handleAddVariant = () => {
-    append({ type: "", options: [] });
+    append({ variantName: "", variantId: null, variationOptions: [] });
   };
   const handleRemoveVariant = (variantIndex: number) => {
+    if (variantIndex == 0) return;
     remove(variantIndex);
   };
 
-  const onSubmit = (data: any) => {
-    console.log(data.variations, "SUBMITTED");
+  const variationTypes: VariationType[] = useMemo(() => {
+    if (!variations.length) return [];
+    return variations.map((item: any) => {
+      return {
+        label: item.name,
+        value: item.id,
+      };
+    });
+  }, [variations]);
+
+  const formatVariatonOption = (options: any[]) => {
+    const labelValuePairs = options?.map((opt: any) => {
+      return {
+        label: opt.name ?? opt.label,
+        value: opt.id ?? opt.value,
+      };
+    });
+    return labelValuePairs;
   };
 
-  const onSubmitForm = (data: any) => {
-    onSubmit(data);
-  };
+  const variationOptionMap = useMemo(() => {
+    return variations.reduce((acc: any, item: any) => {
+      acc[item.id] = formatVariatonOption(item.variationOptions);
+      return acc;
+    }, {});
+  }, [variations]);
 
-  const variationTypes = [
-    {
-      label: "Size",
-      value: "SIZE",
-    },
-    {
-      label: "Color",
-      value: "COLOR",
-    },
-    {
-      label: "Material",
-      value: "MATERIAL",
-    },
-  ];
-
-  const getVariantOptions = (variantType: string = "SIZE") => {
-    switch (variantType) {
-      case "SIZE":
-        return [
-          {
-            label: "Small",
-            value: "SMALL",
-          },
-          {
-            label: "Medium",
-            value: "MEDIUM",
-          },
-          {
-            label: "Large",
-            value: "LARGE",
-          },
-        ];
-      case "COLOR":
-        return [
-          {
-            label: "Red",
-            value: "RED",
-          },
-          {
-            label: "Pink",
-            value: "PINK",
-          },
-          {
-            label: "Blue",
-            value: "BLUE",
-          },
-        ];
-      case "MATERIAL":
-        return [
-          {
-            label: "Polyster",
-            value: "POLYSTER",
-          },
-          {
-            label: "Cotton",
-            value: "COTTON",
-          },
-        ];
-      default:
-        return [];
-    }
-  };
-
-  const getSelectedVariationOptions = (variantType: string) => {
-    const type = form
-      .getValues("variations")
-      .find((item: any) => item.type === variantType);
-
-    return type.options;
-  };
+  const getSelectedVariationOptions = useCallback((variantId: string) => {
+    const variant = fields.find(
+      (item: any) => item.variantId === variantId
+    ) as any;
+    const labelValuePair = formatVariatonOption(variant?.variationOptions);
+    return labelValuePair;
+  }, []);
 
   return (
     <div className="flex flex-col gap-4">
@@ -124,6 +107,7 @@ const VariantForm = () => {
           className="h-8 gap-1 max-w-40"
           onClick={handleAddVariant}
           type="button"
+          disabled={isAddVariationDisabled}
         >
           <PlusCircle className="h-3.5 w-3.5" />
           <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -137,34 +121,48 @@ const VariantForm = () => {
             <>
               <FormField
                 control={form.control}
-                name={`variations.${variantIndex}.type`}
+                name={`variations.${variantIndex}.variantName`}
                 render={({ field }) => {
                   return (
-                    <FormItem>
+                    <FormItem className="col-span-4 md:col-span-1">
                       <FormLabel htmlFor="variantType" className="sr-only">
                         Variant Type
                       </FormLabel>
                       <FormControl>
                         <Select
                           disabled={field.value}
-                          onValueChange={field.onChange}
+                          onValueChange={(val) => {
+                            const variant: any = variationTypes.find(
+                              (item: any) => item.label === val
+                            );
+                            if (variant) {
+                              field.onChange(val);
+                              form.setValue(
+                                `variations.${variantIndex}.variantId`,
+                                variant.value
+                              );
+                            }
+                          }}
                           {...field}
                         >
                           <SelectTrigger
-                            id={`variations.${variantIndex}.type`}
-                            aria-label="Select type"
+                            id={`variations.${variantIndex}.variantName`}
+                            aria-label="Select Variant"
                           >
-                            <SelectValue placeholder="Select type" />
+                            {isLoading && (
+                              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                            )}
+                            <SelectValue placeholder="Select Variant" />
                           </SelectTrigger>
                           <SelectContent>
                             {variationTypes?.map((item, idx: number) => {
                               return (
                                 <SelectItem
                                   disabled={fields?.some((opt: any) => {
-                                    return item.value === opt.type;
+                                    return item.value === opt.variantId;
                                   })}
                                   key={idx}
-                                  value={item?.value}
+                                  value={item?.label}
                                 >
                                   {item?.label}
                                 </SelectItem>
@@ -180,20 +178,28 @@ const VariantForm = () => {
               />
               {watchVariantType(variantIndex) && (
                 <FormField
-                  name={`variations.${variantIndex}.options`}
+                  name={`variations.${variantIndex}.variationOptions`}
                   control={form.control}
                   render={({ field }) => (
-                    <FormItem className="col-span-2">
-                      <FormLabel htmlFor="VariantOptions" className="sr-only">
+                    <FormItem className="relative col-span-4 md:col-span-2 h-fit">
+                      <FormLabel htmlFor="variationOptions" className="sr-only">
                         Select Variant Options
                       </FormLabel>
                       <FormControl>
                         <MultiSelect
-                          options={getVariantOptions(
-                            watchVariantType(variantIndex)
-                          )}
+                          options={
+                            variationOptionMap[watchVariantType(variantIndex)]
+                          }
                           placeholder=""
-                          onChange={field.onChange}
+                          onChange={(selectedValue) => {
+                            const nameIdPair = selectedValue?.map((item) => {
+                              return {
+                                name: item.label,
+                                id: item.value,
+                              };
+                            });
+                            field.onChange(nameIdPair);
+                          }}
                           selectedValues={getSelectedVariationOptions(
                             watchVariantType(variantIndex)
                           )}
@@ -204,12 +210,13 @@ const VariantForm = () => {
                   )}
                 />
               )}
-              <div className="flex items-center">
+
+              <div className={cn("flex items-center")}>
                 <Button
                   type="button"
                   size={"icon"}
                   variant={"ghost"}
-                  className="h-full"
+                  className= {cn("h-full",isAddVariationDisabled && 'hidden')}
                   onClick={() => handleRemoveVariant(variantIndex)}
                 >
                   <Trash2 />

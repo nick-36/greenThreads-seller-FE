@@ -1,7 +1,7 @@
 import * as z from "zod";
 
 const phoneRegex = new RegExp(
-  /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/
+  /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9]){10}$/
 );
 
 export const UserValidationSignUp = z.object({
@@ -24,9 +24,13 @@ export const UserValidationSignUp = z.object({
       required_error: "Email is required",
     })
     .email({ message: "Invalid email address" }),
+
   mobile: z.string().regex(phoneRegex, "Invalid Number!"),
+
   profileImg: z.string(),
-  password: z.string().min(8),
+  password: z.string().min(8, {
+    message: "Password needs 8 characters.",
+  }),
 });
 
 export const UserValidationProfileUpdate = z.object({
@@ -50,6 +54,7 @@ export const UserValidationProfileUpdate = z.object({
     })
     .email({ message: "Invalid email address" }),
   mobile: z.string().regex(phoneRegex, "Invalid Number!"),
+
   profileImg: z.string(),
 });
 

@@ -11,106 +11,181 @@ import productValidationSchema from "@/lib/validation/productValidation";
 import { Form } from "@/components/ui/form";
 import z from "zod";
 import ProductCombinations from "./ProductCombinations";
-import { generateProductVariations } from "@/lib/utils";
+import {
+  formatCombinations,
+  formatVariationData,
+  generateProductVariations,
+} from "@/lib/utils";
 import ProductImages from "./ProductImages";
 import DetailsPreview from "@/components/forms/Products/Preview";
 import Stepper from "@/components/shared/Stepper";
 import ConfirmationModal from "@/components/forms/Products/Confirmation";
+import { useMutation } from "@tanstack/react-query";
+import axios from "@/lib/utils/axios";
+import { useToast } from "@/components/ui/use-toast";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { ProductStatus } from "@/lib/utils/types/CategoryType";
+import { DELIVERY_RANGE } from "@/lib/utils/constants";
+import useAxiosPrivate from "@/hooks/useAxiosPrivate";
 
 type ProductFormData = z.infer<typeof productValidationSchema>;
+let renderCount: number = 0;
+const MultiStepsForm = ({ product }: any) => {
+  console.log(product, "PRODUCT");
+  const params = useParams();
+  const {
+    productName = "",
+    description = "",
+    isActive = true,
+    originalPrice = 100,
+    discountPercentage = 0,
+    discountedPrice = 0,
+    isNextDayDelivery = false,
+    deliveryRange = DELIVERY_RANGE[0],
+    weight = 0,
+    height = 0,
+    width = 0,
+    length = 0,
+    categories = [],
+    variations = [],
+    combinations = [],
+  } = product ?? {};
 
-const MultiStepsForm = () => {
+  const initialState: Partial<ProductFormData> = {
+    productName,
+    description,
+    status: isActive ? ProductStatus["ACTIVE"] : ProductStatus["INACTIVE"],
+    retailPrice: originalPrice,
+    discountPercentage,
+    discountedPrice,
+    isNextDayDelivery,
+    deliveryRange,
+    shippingInfo: { weight, height, width, length },
+    categoryId: categories[0]
+      ? { id: categories[0].id, name: categories[0].name }
+      : { id: null, name: "" },
+    subCategoryId: categories[1]
+      ? { id: categories[1].id, name: categories[1].name }
+      : { id: null, name: "" },
+    subSubCategoryId: categories[2]
+      ? { id: categories[2].id, name: categories[2].name }
+      : { id: null, name: "" },
+    variations: variations.length
+      ? formatVariationData(variations)
+      : [{ variantName: "", variantId: null, variationOptions: [] }],
+    combinations: combinations?.length ? formatCombinations(combinations) : [],
+  };
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [isDisacardModalOpen, setIsDisCardModalOpen] = useState(false);
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productValidationSchema),
-    defaultValues: {
-      productName: "",
-      description: "",
-      status: "active",
-      retailPrice: 100,
-      discountPercentage: 0,
-      discountedPrice: 0,
-      variations: null,
-      combinations: null,
+    defaultValues: initialState,
+    mode: "onBlur",
+  });
+  const axiosPrivate = useAxiosPrivate();
+
+  const formSteps = [
+    {
+      step: <ProductBasicInfo />,
+      fields: ["productName", "discountPercentage"],
+      name: "Basic Info",
+    },
+    {
+      step: <ProductCategoryInfo />,
+      fields: ["categoryId"],
+      name: "Categories",
+    },
+    // {
+    //   step: <ProductVariations />,
+    //   nextFunction: params?.id ? null : () => generateCombinations(),
+    //   fields: ["variations"],
+    //   name: "Variations",
+    // },
+    // {
+    //   step: <ProductCombinations />,
+    //   fields: [],
+    //   name: "Inventory",
+    // },
+
+    {
+      step: <ProductImages />,
+      fields: [],
+      name: "Images",
+    },
+    {
+      step: (
+        <DetailsPreview
+          onSave={() => setIsConfirmationOpen(true)}
+          onDiscard={() => setIsDisCardModalOpen(true)}
+        />
+      ),
+      fields: [],
+      name: "Preview",
+    },
+  ];
+  const { step, steps, next, previous, isLastStep, isFirstStep, goTo } =
+    useMultiStep({
+      steps: formSteps,
+      form,
+      submitHandlder: () => setIsConfirmationOpen(true),
+      defaultStep: product ? formSteps?.length - 1 : 0,
+    });
+  const { toast } = useToast();
+  const router = useRouter();
+  const { mutate: createUpdateProduct, isPending } = useMutation({
+    mutationFn: async (payload: ProductFormData) => {
+      if (params.id) {
+        return await axiosPrivate.patch(`/products/${params.id}`, payload);
+      } else {
+        return await axiosPrivate.post("/products", payload);
+      }
+    },
+    onMutate: (variables) => {
+      // A mutation is about to happen!
+
+      // Optionally return a context containing data to use when for example rolling back
+      return { id: 1 };
+    },
+    onError: (error: any) => {
+      const errorData = error.response.data;
+      console.log(errorData, "ERRORDAT");
+      toast({
+        title: `Uh oh! ${error?.response?.status ?? "500"} `,
+        description: errorData.message || "Something Went Wrong!!",
+      });
+    },
+    onSuccess: ({ data }) => {
+      form.reset();
+      setIsConfirmationOpen(false);
+      const message = params?.id
+        ? "Product Updated Successfully"
+        : "Product Created Successfully";
+      toast({
+        title: "Great!",
+        description: message,
+      });
+      router.push(`/products/${data?.product?.id}/inventory`);
     },
   });
-  const {
-    step,
-    currentStepIndex,
-    steps,
-    next,
-    customNext,
-    previous,
-    isLastStep,
-    isFirstStep,
-    goTo,
-  } = useMultiStep({
-    steps: [
-      {
-        step: <ProductBasicInfo />,
-        fields: ["productName"],
-        name: "Basic Info",
-      },
-      {
-        step: <ProductCategoryInfo />,
-        fields: ["categoryId"],
-        name: "Categories",
-      },
-      {
-        step: <ProductVariations />,
-        nextFunction: () => generateCombinations(),
-        fields: [],
-        name: "Variations",
-      },
-      {
-        step: <ProductCombinations />,
-        fields: [],
-        name: "Inventory",
-      },
 
-      {
-        step: <ProductImages />,
-        fields: [],
-        name: "Images",
-      },
-      {
-        step: (
-          <DetailsPreview
-            onSave={() => setIsConfirmationOpen(true)}
-            onDiscard={() => setIsDisCardModalOpen(true)}
-          />
-        ),
-        fields: [],
-        name: "Preview",
-      },
-    ],
-    form,
-    submitHandlder: () => setIsConfirmationOpen(true),
-  });
+  console.log(
+    {
+      values: form.getValues(),
+      errors: form.formState.errors,
+    },
 
-  console.log(form.formState.errors);
+    "FORMSTATE"
+  );
 
   const generateCombinations = () => {
-    const selectedVariations = form.watch("variations");
+    const selectedVariations = form.getValues("variations");
     const allCombinations = generateProductVariations(selectedVariations);
-    if (!allCombinations.length) {
-      const data = [
-        {
-          name: form.getValues("productName"),
-          stock: "0",
-        },
-      ];
-      form.setValue("combinations", data);
-    } else {
-      form.setValue("combinations", allCombinations);
-    }
+    form.setValue("combinations", allCombinations);
   };
 
   const onFormSubmit = async (data: ProductFormData) => {
-    console.log(data, "FORMMM");
-    form.reset();
-    setIsConfirmationOpen(false);
+    console.log(data, "DATA");
+    createUpdateProduct(data);
   };
 
   const onDiscardConfirm = () => {
@@ -118,13 +193,15 @@ const MultiStepsForm = () => {
     setIsDisCardModalOpen(false);
     goTo(0);
   };
+  renderCount++;
 
   return (
     <div
       x-chunk="dashboard-06-chunk-0 "
-      className="border-none shadow-none md:p-6"
+      className="border-none shadow-none md:p-6 p-4"
     >
       <Form {...form}>
+        {/* <p>Form Renders {renderCount}</p> */}
         <Stepper steps={steps} goTo={goTo} />
         <form
           onSubmit={form?.handleSubmit(onFormSubmit)}
@@ -135,17 +212,7 @@ const MultiStepsForm = () => {
             <Button type="button" onClick={previous} disabled={isFirstStep}>
               Previous
             </Button>
-            <Button
-              type="button"
-              disabled={isLastStep}
-              onClick={() => {
-                if (customNext) {
-                  customNext();
-                } else {
-                  next();
-                }
-              }}
-            >
+            <Button type="button" disabled={isLastStep} onClick={next}>
               Next
             </Button>
           </div>
@@ -163,6 +230,7 @@ const MultiStepsForm = () => {
         proceeding."
         onContinue={() => onFormSubmit(form.getValues())}
         onCancel={() => setIsConfirmationOpen(false)}
+        isLoading={isPending}
       />
     </div>
   );

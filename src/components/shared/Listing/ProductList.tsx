@@ -1,5 +1,11 @@
 "use client";
-import React, { ChangeEvent, useEffect, useRef, useState } from "react";
+import React, {
+  ChangeEvent,
+  Suspense,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   File,
   ListFilter,
@@ -23,7 +29,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import CustomTable from "@/components/shared/Table/Table";
+import DataTable from "@/components/shared/Table/Table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,14 +38,12 @@ import { Badge } from "../../ui/badge";
 import { ColumnDef } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { FormControl } from "@/components/ui/form";
-import axios from "@/lib/utils/axios";
+import { formatDateString } from "@/lib/utils";
 
 const ProductList = ({ data }: any) => {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [files, setFiles] = useState<File[]>([]);
-
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
     const fileReader = new FileReader();
@@ -70,7 +74,7 @@ const ProductList = ({ data }: any) => {
               alt="Product image"
               className="aspect-square rounded-md object-cover"
               height="64"
-              src={img}
+              src={"/assets/dummyProduct.png"}
               width="64"
             />
           </div>
@@ -78,33 +82,46 @@ const ProductList = ({ data }: any) => {
       },
     },
     {
-      accessorKey: "name",
-      header: "Customer",
+      accessorKey: "productName",
+      header: "Name",
       cell: ({ row }) => {
-        const { name } = row?.original;
-        return <div className="font-medium">{name}</div>;
+        const { productName } = row?.original;
+        return <div className="text-sm font-normal">{productName}</div>;
       },
     },
     {
-      accessorKey: "sale",
-      header: "Sale",
+      accessorKey: "originalPrice",
+      header: "Price",
       cell: ({ row }) => {
-        const { sale } = row?.original;
+        const { originalPrice } = row?.original;
         return (
           <>
-            <div className="sm:table-cell">{sale}</div>
+            <div className="sm:table-cell">{originalPrice}</div>
           </>
         );
       },
     },
     {
-      accessorKey: "status",
+      accessorKey: "discountPercentage",
+      header: "Discount",
+      cell: ({ row }) => {
+        const { discountPercentage } = row?.original;
+        return (
+          <>
+            <div className="">{discountPercentage}%</div>
+          </>
+        );
+      },
+    },
+    {
+      accessorKey: "isActive",
       header: "Status",
       cell: ({ row }) => {
-        const { status } = row?.original;
+        const { isActive } = row?.original;
+        const status = isActive ? "Active" : "Inactive";
 
         return (
-          <div className="sm:table-cell">
+          <div className="">
             <Badge className="text-xs" variant="secondary">
               {status}
             </Badge>
@@ -113,26 +130,43 @@ const ProductList = ({ data }: any) => {
       },
     },
     {
-      accessorKey: "date",
-      header: "Date",
+      accessorKey: "deliveryRange",
+      header: "Delivery Range",
       cell: ({ row }) => {
-        const { date } = row?.original;
-        return <div className="md:table-cell">{date}</div>;
+        const { deliveryRange } = row?.original;
+        return (
+          <div className="text-sm font-normal">
+            {deliveryRange.replace(/_/g, " ")}
+          </div>
+        );
       },
     },
 
     {
-      accessorKey: "amount",
-      header: "Amount",
+      accessorKey: "isNextDayDelivery",
+      header: "isNextDayDelivery",
       cell: ({ row }) => {
-        const { price } = row?.original;
-        return <div className="text-center md:table-cell">${price}</div>;
+        const { isNextDayDelivery } = row?.original;
+        const text = isNextDayDelivery ? "Yes" : "No";
+        return (
+          <div className="w-full flex items-center justify-center">{text}</div>
+        );
       },
     },
     {
-      accessorKey: "action",
+      accessorKey: "createdAt",
+      header: "Created At",
+      cell: ({ row }) => {
+        const { createdAt } = row?.original;
+        const formattedDate = formatDateString(createdAt);
+        return <div className="text-center md:table-cell">{formattedDate}</div>;
+      },
+    },
+    {
+      accessorKey: "id",
       header: "Action",
       cell: ({ row }) => {
+        const { id } = row?.original;
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -145,7 +179,7 @@ const ProductList = ({ data }: any) => {
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem
                 onClick={() => {
-                  router.push(`/products/{row.id}`);
+                  router.push(`/products/${id}`);
                 }}
               >
                 Edit
@@ -158,17 +192,6 @@ const ProductList = ({ data }: any) => {
     },
   ];
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await axios.get("/api/v1");
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    fetchData();
-  }, []);
-
   return (
     <div>
       <Tabs defaultValue="all">
@@ -179,7 +202,7 @@ const ProductList = ({ data }: any) => {
             <TabsTrigger value="draft">Inactive</TabsTrigger>
           </TabsList>
           <div className="ml-auto flex items-center gap-2">
-            <DropdownMenu>
+            {/* <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 gap-1">
                   <ListFilter className="h-3.5 w-3.5" />
@@ -197,7 +220,7 @@ const ProductList = ({ data }: any) => {
                 <DropdownMenuCheckboxItem>Draft</DropdownMenuCheckboxItem>
                 <DropdownMenuCheckboxItem>Archived</DropdownMenuCheckboxItem>
               </DropdownMenuContent>
-            </DropdownMenu>
+            </DropdownMenu> */}
             <Link href="/products/add-product">
               <Button size="sm" className="h-8 gap-1">
                 <PlusCircle className="h-3.5 w-3.5" />
@@ -252,7 +275,7 @@ const ProductList = ({ data }: any) => {
               </div>
             </div>
             <CardContent>
-              <CustomTable columns={columns} data={data} />
+              <DataTable columns={columns} data={data} />
             </CardContent>
           </Card>
         </TabsContent>

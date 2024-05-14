@@ -32,7 +32,7 @@ if (isDev) {
     return [
       {
         source: "/api/:path*",
-        destination: `${process.env.BASE_API_URL}/api/:path*`, // Proxy to Backend
+        destination: `${process.env.NEXT_PUBLIC_BASE_API_URL}/:path*`, // Proxy to Backend
       },
     ];
   };

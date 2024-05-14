@@ -2,9 +2,16 @@
 import React, { useEffect, useState, ReactElement } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Home, ShoppingCart, Package, LineChart, BarChart, Tag } from "lucide-react";
+import {
+  Home,
+  ShoppingCart,
+  Package,
+  LineChart,
+  BarChart,
+  Tag,
+} from "lucide-react";
 import { mobileFooterLinks } from "@/lib/utils/mobileFooterLinks";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import NotificationBell from "../NotificationBell";
 
@@ -23,6 +30,7 @@ const iconMapping: IconMapping = {
 const DesktopSidebar = () => {
   const pathname = usePathname();
   const [currPath, setCurrPath] = useState(pathname);
+  const router = useRouter();
 
   useEffect(() => {
     if (pathname && currPath !== pathname) {
@@ -58,6 +66,9 @@ const DesktopSidebar = () => {
                     "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
                     isActive ? "bg-muted " : ""
                   )}
+                  onClick={() => {
+                    router.refresh();
+                  }}
                 >
                   {iconMapping[link.icon]({ isActive })}
                   {link.name}

@@ -1,4 +1,4 @@
-import {  z } from "zod";
+import { z } from "zod";
 
 export const skuSchema = z.object({
   id: z.string()?.optional(),
@@ -14,8 +14,24 @@ export const productValidationSchema = z.object({
   description: z.string()?.optional(),
   status: z.enum(["active", "inactive"]),
   retailPrice: z.number().positive(),
-  discountPercentage: z.number().min(0).max(100),
-  discountedPrice: z.number().optional(),
+  discountPercentage: z.coerce.number().min(0).max(100, {
+    message: "max value is 100.",
+  }),
+  discountedPrice: z.number().min(0).optional(),
+  isNextDayDelivery: z.boolean(),
+  shippingInfo: z.object({
+    weight: z.number().optional(),
+    width: z.number().optional(),
+    height: z.number().optional(),
+    length: z.number().optional(),
+  }),
+  deliveryRange: z.enum([
+    "ONE_TO_THREE_DAYS",
+    "THREE_TO_FIVE_DAYS",
+    "FIVE_TO_SEVEN_DAYS",
+    "SEVEN_TO_TEN_DAYS",
+    "TEN_TO_FOURTEEN_DAYS",
+  ]),
   categoryId: z.object({
     id: z.string().uuid(),
     name: z.string(),
@@ -36,17 +52,26 @@ export const productValidationSchema = z.object({
     .array(
       z.object({
         id: z.string().uuid()?.optional(),
-        type: z.string(),
-        options: z.array(
-          z.object({
-            label: z.string(),
-            value: z.string(),
-          })
-        ),
+        variantId: z.string().uuid().nullish(),
+        variantName: z.string().min(1, {
+          message: "Choose at least one variation",
+        }),
+        variationOptions: z
+          .array(
+            z.object({
+              name: z.string(),
+              id: z.string(),
+            })
+          )
+          .min(1, {
+            message: "Choose atleast one option",
+          }),
       })
     )
-    ?.nullable(),
-  combinations: z.record(z.string(), z.any())?.nullable(),
+    .min(1, {
+      message: "Choose at least one variation",
+    }),
+  combinations: z.any(),
 });
 
 export const categoryValidationSchema = z.object({
@@ -55,6 +80,23 @@ export const categoryValidationSchema = z.object({
   parentId: z.string().optional()?.nullable(),
   categoryImg: z.string().optional()?.nullable(),
   categorySlug: z.string()?.optional(),
+});
+
+export const variationsValidationSchema = z.object({
+  skus: z.array(
+    z.object({
+      title: z.string(),
+      size: z.object({
+        name: z.string(),
+        id: z.string(),
+      }),
+      color: z.object({
+        name: z.string(),
+        id: z.string(),
+      }),
+      availableStock: z.number().default(0),
+    })
+  ),
 });
 
 export default productValidationSchema;

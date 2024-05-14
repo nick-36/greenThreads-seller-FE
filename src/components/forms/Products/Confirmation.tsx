@@ -9,6 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Icons } from "@/components/ui/icons";
 
 const Confirmation = ({
   title = "Are you sure you?",
@@ -16,6 +17,7 @@ const Confirmation = ({
   onContinue,
   onCancel,
   isOpen,
+  isLoading = false,
 }: any) => {
   return (
     <div>
@@ -26,10 +28,21 @@ const Confirmation = ({
             <AlertDialogDescription>{subTitle}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel type="button" onClick={onCancel}>
+            <AlertDialogCancel
+              disabled={isLoading}
+              type="button"
+              onClick={onCancel}
+            >
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction type="button" onClick={onContinue}>
+            <AlertDialogAction
+              disabled={isLoading}
+              type="button"
+              onClick={onContinue}
+            >
+              {isLoading && (
+                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+              )}
               Continue
             </AlertDialogAction>
           </AlertDialogFooter>

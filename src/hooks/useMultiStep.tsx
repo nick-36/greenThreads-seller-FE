@@ -5,7 +5,7 @@ type NextFunction = () => void;
 
 interface StepInfo {
   step: ReactElement;
-  nextFunction?: NextFunction;
+  nextFunction?: NextFunction | null;
   fields?: string[];
   name: string;
   status?: "pending" | "current" | "completed"; // New status property
@@ -15,17 +15,23 @@ const useMultiStep = ({
   steps,
   form,
   submitHandlder,
+  defaultStep = 0,
 }: {
   steps: StepInfo[];
   form: any;
   submitHandlder: (data?: any) => void;
+  defaultStep: number;
 }) => {
-  const [currentStepIndex, setCurrentStepIndex] = useState(2);
+  const [currentStepIndex, setCurrentStepIndex] = useState(defaultStep);
 
   const next = async () => {
     const fields = steps[currentStepIndex]?.fields;
     const isValid = await form.trigger(fields);
     if (!isValid) return;
+    const nextFunction = steps[currentStepIndex]?.nextFunction;
+    if (nextFunction) {
+      nextFunction();
+    }
     if (currentStepIndex <= steps.length - 1) {
       if (currentStepIndex === steps.length - 1) {
         submitHandlder();
@@ -46,13 +52,16 @@ const useMultiStep = ({
     }
   };
 
-  const customNext = () => {
-    const nextFunction = steps[currentStepIndex]?.nextFunction;
-    if (nextFunction) {
-      nextFunction();
-    }
-    next(); // Execute default next functionality
-  };
+  // const customNext = async () => {
+  //   const fields = steps[currentStepIndex]?.fields;
+  //   const isValid = await form.trigger(fields);
+  //   if (!isValid) return;
+  //   const nextFunction = steps[currentStepIndex]?.nextFunction;
+  //   if (nextFunction) {
+  //     nextFunction();
+  //   }
+  //   next(); // Execute default next functionality
+  // };
 
   const updatedSteps = steps.map((step, index) => {
     if (index < currentStepIndex) {
@@ -72,7 +81,7 @@ const useMultiStep = ({
     steps: updatedSteps,
     isFirstStep: currentStepIndex === 0,
     isLastStep: currentStepIndex === steps.length - 1,
-    customNext,
+    // customNext,
   };
 };
 

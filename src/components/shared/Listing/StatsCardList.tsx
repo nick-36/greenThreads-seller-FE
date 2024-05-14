@@ -1,4 +1,5 @@
 import BusinessStatsCard from "@/components/shared/Cards/BusinessStatsCard";
+import { useSession } from "@clerk/nextjs";
 
 type BusinessStatsCardProps = {
   title: string;
