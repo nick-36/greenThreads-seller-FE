@@ -1,18 +1,6 @@
 "use client";
-import React, {
-  ChangeEvent,
-  Suspense,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import {
-  File,
-  ListFilter,
-  MoreHorizontal,
-  PlusCircle,
-  Search,
-} from "lucide-react";
+import React, { useRef, useState } from "react";
+import { MoreHorizontal, PlusCircle, Search } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -22,14 +10,11 @@ import {
 } from "@/components/ui/card";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import DataTable from "@/components/shared/Table/Table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,42 +24,74 @@ import { ColumnDef } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { formatDateString } from "@/lib/utils";
+import { DataTable } from "@/components/shared/Table/TableV2";
+import { useDataTable } from "@/hooks/useDataTable";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { useMutation } from "@tanstack/react-query";
+import useAxiosPrivate from "@/hooks/useAxiosPrivate";
+import { toast } from "@/components/ui/use-toast";
+import { Icons } from "@/components/ui/icons";
+import { UploadDropzone } from "@/lib/utils/uploadthing";
 
-const ProductList = ({ data }: any) => {
+const ProductList = ({
+  data,
+  searchTerm,
+  handleSearch,
+  isLoading,
+  handleTabChange,
+  tab,
+}: any) => {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const [files, setFiles] = useState<File[]>([]);
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    const fileReader = new FileReader();
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      setFiles(Array.from(e.target.files));
-
-      if (!file.type.includes("image")) return;
-
-      fileReader.onload = async (event) => {
-        const imageDataUrl = event.target?.result?.toString() || "";
-
-        // fieldChange(imageDataUrl);
-      };
-      fileReader.readAsDataURL(file);
-    }
-  };
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const axiosPrivate = useAxiosPrivate();
+  const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
+  const { mutate: bulkCreation, isPending } = useMutation({
+    mutationFn: async (payload: any) => {
+      console.log("PAYLOAD", payload);
+      await axiosPrivate.post("/products/bulk-upload", { fileUrl: payload });
+    },
+    onError: (error: any) => {
+      const errorData = error.response.data;
+      console.log(errorData, "ERRORDAT");
+      toast({
+        title: `Uh oh! ${error?.response?.status ?? "500"} `,
+        description: errorData.message || "Something Went Wrong!!",
+      });
+    },
+    onSuccess: () => {
+      console.log("SUCCESS");
+      setIsBulkModalOpen(false);
+      setUploadedFileUrl(null);
+      toast({
+        title: "Great!",
+        description: "Bulk Upload Started!",
+      });
+    },
+  });
 
   const columns: ColumnDef<any>[] = [
     {
-      accessorKey: "image",
+      accessorKey: "previewImage",
       header: "Image",
       cell: ({ row }) => {
-        const { img } = row?.original;
+        const { previewImage } = row?.original;
+        const srcUrl = previewImage || "/assets/placeholder.svg";
         return (
           <div className="sm:table-cell">
             <Image
               alt="Product image"
               className="aspect-square rounded-md object-cover"
               height="64"
-              src={"/assets/dummyProduct.png"}
+              src={srcUrl}
               width="64"
             />
           </div>
@@ -136,7 +153,7 @@ const ProductList = ({ data }: any) => {
         const { deliveryRange } = row?.original;
         return (
           <div className="text-sm font-normal">
-            {deliveryRange.replace(/_/g, " ")}
+            {deliveryRange?.replace(/_/g, " ")}
           </div>
         );
       },
@@ -192,35 +209,26 @@ const ProductList = ({ data }: any) => {
     },
   ];
 
+  const { table } = useDataTable({
+    data: data?.data,
+    columns: columns,
+    pageCount: data?.pagination?.pageCount ?? 1,
+  });
+
+  const onBulkUpload = () => {
+    setIsBulkModalOpen((prev) => !prev);
+  };
+
   return (
     <div>
-      <Tabs defaultValue="all">
+      <Tabs defaultValue="all" value={tab} onValueChange={handleTabChange}>
         <div className="flex items-center p-6">
           <TabsList>
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="draft">Inactive</TabsTrigger>
+            <TabsTrigger value="inactive">Inactive</TabsTrigger>
           </TabsList>
           <div className="ml-auto flex items-center gap-2">
-            {/* <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 gap-1">
-                  <ListFilter className="h-3.5 w-3.5" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Filter
-                  </span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuCheckboxItem checked>
-                  Active
-                </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem>Draft</DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem>Archived</DropdownMenuCheckboxItem>
-              </DropdownMenuContent>
-            </DropdownMenu> */}
             <Link href="/products/add-product">
               <Button size="sm" className="h-8 gap-1">
                 <PlusCircle className="h-3.5 w-3.5" />
@@ -232,7 +240,8 @@ const ProductList = ({ data }: any) => {
             <Button
               size="sm"
               className="h-8 gap-1"
-              onClick={() => inputRef?.current?.click()}
+              // onClick={() => inputRef?.current?.click()}
+              onClick={onBulkUpload}
             >
               <PlusCircle className="h-3.5 w-3.5" />
               <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -243,12 +252,12 @@ const ProductList = ({ data }: any) => {
                 type="file"
                 accept=".csv,.xlsx"
                 className="hidden"
-                onChange={(e: any) => handleFileChange(e)}
+                // onChange={(e: any) => handleFileChange(e)}
               />
             </Button>
           </div>
         </div>
-        <TabsContent value="all" className="px-6">
+        <TabsContent value={tab} className="px-6">
           <Card x-chunk="dashboard-05-chunk-3" className="border-dashed">
             <div className="flex flex-col space-y-3 md:flex-row justify-between p-6 px-4 md:px-7">
               <div
@@ -271,17 +280,66 @@ const ProductList = ({ data }: any) => {
                   type="search"
                   placeholder="Search..."
                   className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]"
+                  value={searchTerm}
+                  onChange={handleSearch}
                 />
               </div>
             </div>
             <CardContent>
-              <DataTable columns={columns} data={data} />
+              <DataTable table={table} isLoading={isLoading} />
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+      <Dialog open={isBulkModalOpen} onOpenChange={onBulkUpload}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Upload A Excel File</DialogTitle>
+            <DialogDescription>Download Excel Format</DialogDescription>
+          </DialogHeader>
+          <UploadDropzone
+            className="bg-slate-800 ut-label:text-lg ut-allowed-content:ut-uploading:text-red-300"
+            endpoint="excelFileUploader"
+            onClientUploadComplete={(res) => {
+              // Store the uploaded file URL
+              if (res?.[0]?.url) {
+                setUploadedFileUrl(res[0].url);
+                toast({
+                  title: "File Uploaded Successfully!",
+                });
+              }
+            }}
+            onUploadError={(error: Error) => {
+              toast({
+                title: "Upload Failed",
+                description: error.message || "Something Went Wrong!",
+                variant: "destructive",
+              });
+            }}
+          />
+          <DialogFooter>
+            <DialogClose
+              disabled={isPending}
+              type="button"
+              onClick={() => {
+                if (uploadedFileUrl) {
+                  bulkCreation(uploadedFileUrl);
+                }
+              }}
+              asChild
+            >
+              <Button type="button">
+                {isPending && (
+                  <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Continue
+              </Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
 
-export default ProductList;
+export default React.memo(ProductList);

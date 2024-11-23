@@ -9,6 +9,7 @@ import {
   LineChart,
   BarChart,
   Tag,
+  Store,
 } from "lucide-react";
 import { mobileFooterLinks } from "@/lib/utils/mobileFooterLinks";
 import { usePathname, useRouter } from "next/navigation";
@@ -21,6 +22,7 @@ interface IconMapping {
 const iconMapping: IconMapping = {
   home: (props: any) => <Home className="h-4 w-4" {...props} />,
   orders: (props: any) => <ShoppingCart className="h-4 w-4" {...props} />,
+  brand: (props: any) => <Store className="h-4 w-4" {...props} />,
   revenue: (props: any) => <LineChart className="h-4 w-4" {...props} />,
   products: (props: any) => <Package className="h-4 w-4" {...props} />,
   barchart: (props: any) => <BarChart className="h-4 w-4" {...props} />,
@@ -31,7 +33,6 @@ const DesktopSidebar = () => {
   const pathname = usePathname();
   const [currPath, setCurrPath] = useState(pathname);
   const router = useRouter();
-
   useEffect(() => {
     if (pathname && currPath !== pathname) {
       setCurrPath(pathname);

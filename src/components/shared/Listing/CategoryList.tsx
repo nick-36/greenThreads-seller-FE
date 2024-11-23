@@ -10,16 +10,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import DataTable from "../Table/Table";
-import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
-import Link from "next/link";
+
 import { Category } from "@/lib/utils/types/CategoryType";
 
 type CategoryListProps = {
-  categories: Category[];
+  categories: {
+    data: Category[];
+    pagination: any;
+  };
 };
 
 const CategoryList = ({ categories }: CategoryListProps) => {
+  console.log(categories, "CATE");
   const columns: ColumnDef<any>[] = [
     {
       id: "name",
@@ -78,19 +80,9 @@ const CategoryList = ({ categories }: CategoryListProps) => {
                 <CardDescription>All Categories</CardDescription>
               </CardHeader>
             </div>
-            <div className="relative md:ml-auto flex-1 md:grow-0">
-              <Link href="/categories/create">
-                <Button size="sm" className="h-8 gap-1">
-                  <PlusCircle className="h-3.5 w-3.5" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Create
-                  </span>
-                </Button>
-              </Link>
-            </div>
           </div>
           <Card className="border-dashed">
-            <DataTable columns={columns} data={categories} />
+            <DataTable columns={columns} data={categories?.data} />
           </Card>
         </CardContent>
       </Card>

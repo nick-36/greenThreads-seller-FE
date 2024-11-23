@@ -25,7 +25,7 @@ export const UserValidationSignUp = z.object({
     })
     .email({ message: "Invalid email address" }),
 
-  mobile: z.string().regex(phoneRegex, "Invalid Number!"),
+  phoneNumber: z.string().regex(phoneRegex, "Invalid Number!"),
 
   profileImg: z.string(),
   password: z.string().min(8, {
@@ -53,8 +53,7 @@ export const UserValidationProfileUpdate = z.object({
       required_error: "Email is required",
     })
     .email({ message: "Invalid email address" }),
-  mobile: z.string().regex(phoneRegex, "Invalid Number!"),
-
+  phoneNumber: z.string().regex(phoneRegex, "Invalid Number!"),
   profileImg: z.string(),
 });
 
@@ -74,8 +73,8 @@ const SignInStepSchema = z.object({
       required_error: "Email is required",
     })
     .email({ message: "Invalid email address" }),
-  password: z.string().min(4, {
-    message: "Password must contain atlease 4 character.",
+  password: z.string().min(8, {
+    message: "Password must contain atlease 8 character.",
   }),
 });
 
@@ -98,11 +97,16 @@ export const SignInValidation = z.intersection(
   defaultSignInSchema
 );
 
-// export const SignInValidation = z.object({
-//   email: z
-//     .string({
-//       required_error: "Email is required",
-//     })
-//     .email({ message: "Invalid email address" }),
-//   password: z.string(),
-// });
+export const ForgotPasswordValidation = z.object({
+  email: z
+    .string({
+      required_error: "Email is required",
+    })
+    .email({ message: "Invalid email address" }),
+  password: z.string().min(8, {
+    message: "password is required",
+  }),
+  resetCode: z.string().min(6, {
+    message: "code is required",
+  }),
+});

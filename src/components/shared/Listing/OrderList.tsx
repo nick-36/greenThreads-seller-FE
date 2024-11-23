@@ -1,8 +1,13 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import ProductCard from "../Cards/OrderCard";
-import Image from "next/image";
+import React, { useCallback, useState } from "react";
 import Link from "next/link";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   ArrowUpRight,
   ChevronLeft,
@@ -11,6 +16,7 @@ import {
   CreditCard,
   File,
   Home,
+  IndianRupee,
   LineChart,
   ListFilter,
   MoreVertical,
@@ -29,10 +35,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
-import useSearchFetch from "@/hooks/useSearchFetch";
 import useDebounce from "@/hooks/useDebounce";
 import { ColumnDef } from "@tanstack/react-table";
-import DataTable from "../Table/Table";
+import { DataTable } from "@/components/shared/Table/TableV2";
 import {
   Card,
   CardContent,
@@ -40,7 +45,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+import { formatDateString } from "@/lib/utils";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import useAxiosPrivate from "@/hooks/useAxiosPrivate";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useDataTable } from "@/hooks/useDataTable";
+import { useSearchParams } from "next/navigation";
 
 type Product = {
   name: string;
@@ -57,166 +78,178 @@ type Order = {
 
 type OrderListProps = {
   orders: Order[];
+  fetcher?: (data: any) => {};
 };
 
-const OrderList = ({ orders }: OrderListProps) => {
+const OrderList = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const debouncedInputValue = useDebounce(searchTerm, 1000);
+  const debouncedSearchTerm = useDebounce(searchTerm, 500); // Debounce search term with 500ms delay
+  const [tab, setTab] = useState("ALL");
+  const axiosPrivate = useAxiosPrivate();
+  const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  const search = Object.fromEntries(searchParams);
+  const { data: ordersList, isLoading } = useQuery({
+    queryKey: ["orders", debouncedSearchTerm, tab, search.page],
+    queryFn: async () => {
+      const response = await axiosPrivate.get("/orders", {
+        params: {
+          search: debouncedSearchTerm,
+          status: tab,
+          page: search.page,
+        },
+      });
+      return response?.data;
+    },
+  });
+  const { mutate: updateOrderStatus, isPending } = useMutation({
+    mutationFn: async ({
+      orderItemId,
+      newStatus,
+    }: {
+      orderItemId: string | null;
+      newStatus: string;
+    }) => {
+      await axiosPrivate.post("/orders/update-status", {
+        status: newStatus,
+        orderItemId,
+      });
+    },
+    onError: (error: any) => {
+      const errorData = error.response.data;
+      console.log(errorData, "ERRORDAT");
+    },
+    onSuccess: () => {
+      setIsConfirmationOpen(initialState);
+      return queryClient.invalidateQueries({
+        queryKey: ["orders"],
+      });
+    },
+  });
 
-  const { results } = useSearchFetch(
-    `https://jsonplaceholder.typicode.com/posts?q=${debouncedInputValue}`
-  );
-
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
+  const initialState = {
+    isOpen: false,
+    orderItemId: null,
+    status: "",
   };
-
-  const data = [
-    {
-      id: "728ed52f",
-      name: "Noah Williams",
-      type: "Sale",
-      status: "pending",
-      email: "m@example.com",
-      amount: 100,
-      date: "2023-06-23",
-    },
-    {
-      id: "728ed52f",
-      name: "Noah Williams",
-      type: "Sale",
-      status: "pending",
-      email: "m@example.com",
-      amount: 100,
-      date: "2023-06-23",
-    },
-    {
-      id: "728ed52f",
-      name: "Noah Williams",
-      type: "Refund",
-      status: "pending",
-      email: "m@example.com",
-      amount: 1100,
-      date: "2023-06-23",
-    },
-    {
-      id: "728ed52f",
-      name: "Noah Williams",
-      type: "Sale",
-      status: "pending",
-      email: "olivia@example.com",
-      amount: 200,
-      date: "2023-06-23",
-    },
-    {
-      id: "728ed52f",
-      name: "Noah Williams",
-      type: "Sale",
-      status: "Declined",
-      email: "m@example.com",
-      amount: 200,
-      date: "2023-06-23",
-    },
-    {
-      id: "728ed52f",
-      name: "Noah Williams",
-      type: "Sale",
-      status: "Refund",
-      email: "m@example.com",
-      amount: 200,
-      date: "2023-06-23",
-    },
-    {
-      id: "728ed52f",
-      name: "Noah Williams",
-      type: "Sale",
-      status: "Fulfilled",
-      email: "m@example.com",
-      amount: 200,
-      date: "2023-06-23",
-    },
-  ];
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(initialState);
 
   const columns: ColumnDef<any>[] = [
-    {
-      id: "select",
-      header: ({ table }) => {
-        return (
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
-            }
-            onCheckedChange={(value) =>
-              table.toggleAllPageRowsSelected(!!value)
-            }
-            aria-label="Select all"
-          />
-        );
-      },
-      cell: ({ row }) => {
-        return (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
-        );
-      },
-      enableSorting: false,
-      enableHiding: false,
-    },
+    // {
+    //   id: "select",
+    //   header: ({ table }) => {
+    //     return (
+    //       <Checkbox
+    //         checked={
+    //           table.getIsAllPageRowsSelected() ||
+    //           (table.getIsSomePageRowsSelected() && "indeterminate")
+    //         }
+    //         onCheckedChange={(value) =>
+    //           table.toggleAllPageRowsSelected(!!value)
+    //         }
+    //         aria-label="Select all"
+    //       />
+    //     );
+    //   },
+    //   cell: ({ row }) => {
+    //     return (
+    //       <Checkbox
+    //         checked={row.getIsSelected()}
+    //         onCheckedChange={(value) => row.toggleSelected(!!value)}
+    //         aria-label="Select row"
+    //       />
+    //     );
+    //   },
+    //   enableSorting: false,
+    //   enableHiding: false,
+    // },
     {
       id: "name",
       accessorKey: "name",
       header: "Customer",
       cell: ({ row }) => {
-        const { name, email } = row?.original;
+        const { order } = row?.original;
+        const customerDetails = order?.customerDetails;
         return (
           <>
-            <div className="font-medium">{name}</div>
+            <div className="font-medium">{customerDetails?.name}</div>
             <div className="text-sm text-muted-foreground md:inline">
-              {email}
+              {customerDetails?.email}
             </div>
           </>
         );
       },
     },
     {
-      accessorKey: "type",
-      header: "Type",
+      id: "orderItem",
+      accessorKey: "orderItem",
+      header: "Product",
       cell: ({ row }) => {
-        const { type } = row?.original;
+        const { productName, quantity } = row?.original;
         return (
           <>
-            <div className="sm:table-cell">{type}</div>
+            <div className="font-medium">{productName}</div>
+            <div className="text-sm text-muted-foreground md:inline">
+              x <span>{quantity}</span>
+            </div>
           </>
         );
       },
     },
     {
-      accessorKey: "status",
+      id: "deliveryStatus",
+      accessorKey: "deliveryStatus",
       header: "Status",
-      cell: ({ row }) => {
-        const { status } = row?.original;
-
+      cell: ({ row }: any) => {
+        const { deliveryStatus, id } = row?.original;
+        
         return (
-          <div className="sm:table-cell">
-            <Badge className="text-xs" variant="secondary">
-              {status}
-            </Badge>
-          </div>
+          <Select
+            value={deliveryStatus}
+            onValueChange={(val) => {
+              setIsConfirmationOpen({
+                isOpen: true,
+                orderItemId: id,
+                status: val,
+              });
+            }}
+            disabled={deliveryStatus === "DELIVERED"}
+          >
+            <SelectTrigger id={`status.${row.id}`} aria-label="Select Status">
+              <SelectValue placeholder="Select Status" />
+            </SelectTrigger>
+            <SelectContent>
+              {[
+                { label: "Pending", value: "PENDING", isDone: false },
+                { label: "Shipped", value: "SHIPPED", isDone: false },
+                {
+                  label: "Delivered",
+                  value: "DELIVERED",
+                  isDone: false,
+                },
+              ].map((item: any) => {
+                return (
+                  <SelectItem key={item.value} value={item?.value}>
+                    {item?.label}
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
         );
       },
     },
+
     {
       accessorKey: "date",
       header: () => {
         return <div className="hidden md:table-cell">Date</div>;
       },
       cell: ({ row }) => {
-        const { date } = row?.original;
-        return <div className="hidden md:table-cell">{date}</div>;
+        const { order } = row?.original;
+        const createdAt = order?.createdAt;
+        const formattedDate = createdAt && formatDateString(createdAt);
+        return <div className="hidden md:table-cell">{formattedDate}</div>;
       },
     },
 
@@ -224,8 +257,13 @@ const OrderList = ({ orders }: OrderListProps) => {
       accessorKey: "amount",
       header: "Amount",
       cell: ({ row }) => {
-        const { amount } = row?.original;
-        return <div className="text-center md:table-cell">${amount}</div>;
+        const { amountTotal } = row?.original;
+        return (
+          <div className="text-center flex items-center">
+            <IndianRupee className="h-3 w-3" />
+            <p>{amountTotal}</p>
+          </div>
+        );
       },
     },
     {
@@ -233,10 +271,10 @@ const OrderList = ({ orders }: OrderListProps) => {
       accessorKey: "more",
       header: "Details",
       cell: ({ row }) => {
-        const { amount } = row?.original;
+        const { order } = row?.original;
         return (
           <Button asChild size="sm" className="ml-auto gap-1">
-            <Link href="/orders/abc">
+            <Link href={`/orders/${order?.id}`}>
               <p className="hidden md:flex">View More</p>
               <ArrowUpRight className="h-4 w-4" />
             </Link>
@@ -246,33 +284,97 @@ const OrderList = ({ orders }: OrderListProps) => {
     },
   ];
 
+  const handleSearch = useCallback((event: any) => {
+    setSearchTerm(event.target.value);
+  }, []); // useCallback ensures handleSearch function is stable across renders
+
+  const { table } = useDataTable({
+    data: ordersList?.data,
+    columns: columns,
+    pageCount: ordersList?.pagination?.pageCount ?? 1,
+  });
+
   return (
-    <Card x-chunk="dashboard-05-chunk-3" className="border-none">
-      <CardContent className="p-4">
-        <div className="flex flex-col space-y-3 md:flex-row justify-between p-6 px-2 md:px-5">
-          <div
-            x-chunk="dashboard-05-chunk-3"
-            className="flex flex-1 justify-between border-none"
-          >
-            <CardHeader className="p-0">
-              <CardTitle>Orders</CardTitle>
-              <CardDescription>Recent orders from your store.</CardDescription>
-            </CardHeader>
-          </div>
-          <div className="relative md:ml-auto flex-1 md:grow-0">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search..."
-              className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]"
-            />
-          </div>
-        </div>
-        <Card className="border-dashed">
-          <DataTable columns={columns} data={data} />
-        </Card>
-      </CardContent>
-    </Card>
+    <>
+      <Card x-chunk="dashboard-05-chunk-3" className="border-none shadow-none">
+        <CardContent className="p-4">
+          <Tabs defaultValue={tab} onValueChange={(val) => setTab(val)}>
+            <div className="flex items-center p-6">
+              <TabsList>
+                <TabsTrigger value="ALL">All</TabsTrigger>
+                <TabsTrigger value="PENDING">Pending</TabsTrigger>
+                <TabsTrigger value="SHIPPED">Shipped</TabsTrigger>
+                <TabsTrigger value="DELIVERED">Delivered</TabsTrigger>
+              </TabsList>
+            </div>
+            <TabsContent value={tab}>
+              <Card className="border-dashed shadow-none">
+                <div className="flex flex-col space-y-3 md:flex-row justify-between p-6 px-2 md:px-5">
+                  <div
+                    x-chunk="dashboard-05-chunk-3"
+                    className="flex flex-1 justify-between border-none"
+                  >
+                    <CardHeader className="p-0">
+                      <CardTitle>Orders</CardTitle>
+                      <CardDescription>
+                        Recent orders from your store.
+                      </CardDescription>
+                    </CardHeader>
+                  </div>
+                  <div className="relative md:ml-auto flex-1 md:grow-0">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="search"
+                      placeholder="Search..."
+                      className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]"
+                      onChange={handleSearch}
+                      value={searchTerm}
+                    />
+                  </div>
+                </div>
+                <CardContent>
+                  <DataTable table={table} isLoading={isLoading} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+      <AlertDialog open={isConfirmationOpen.isOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your
+              account and remove your data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setIsConfirmationOpen({
+                  isOpen: false,
+                  orderItemId: null,
+                  status: "",
+                });
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() =>
+                updateOrderStatus({
+                  orderItemId: isConfirmationOpen.orderItemId,
+                  newStatus: isConfirmationOpen.status,
+                })
+              }
+            >
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 

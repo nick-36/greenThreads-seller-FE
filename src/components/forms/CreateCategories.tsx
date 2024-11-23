@@ -27,13 +27,12 @@ import {
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { CheckIcon, ChevronDown } from "lucide-react";
-import axios from "@/lib/utils/axios";
 import { useToast } from "../ui/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Icons } from "../ui/icons";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import useAxiosPrivate from "@/hooks/useAxiosPrivate";
 
 type CategoryCreateSchemaType = z.infer<typeof categoryValidationSchema>;
 
@@ -41,9 +40,10 @@ const CreateCategories = () => {
   const [files, setFiles] = useState<File[]>([]);
   const { toast } = useToast();
   const router = useRouter();
+  const axiosPrivate = useAxiosPrivate();
   const categoryMutation = useMutation({
     mutationFn: async (payload: CategoryCreateSchemaType) => {
-      return await axios.post("/categories", payload);
+      return await axiosPrivate.post("/categories", payload);
     },
     onError: (error: any) => {
       const errorData = error.response.data;
@@ -64,7 +64,7 @@ const CreateCategories = () => {
     queryKey: ["categories", categoryMutation.isSuccess],
     queryFn: async () => {
       try {
-        const response = await axios.get("/categories");
+        const response = await axiosPrivate.get("/categories");
         return response?.data?.categories;
       } catch (error: any) {
         toast({

@@ -7,7 +7,7 @@ const fetchCategories = async () => {
   try {
     const res = await axios.get("/categories");
     if (res.data?.success) {
-      return res.data?.categories;
+      return res.data;
     }
     return [];
   } catch (error) {

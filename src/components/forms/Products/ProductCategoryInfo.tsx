@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   FormControl,
   FormField,
@@ -24,38 +24,41 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CheckIcon, ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import axios from "@/lib/utils/axios";
 import { toast } from "@/components/ui/use-toast";
 import { Category } from "@/lib/utils/types/CategoryType";
 import { useFormContext } from "react-hook-form";
 import { Icons } from "@/components/ui/icons";
-
-const fetchCategoryByParentId = async (parentId: string) => {
-  try {
-    const response = await axios.get(`/subcategories/${parentId}`);
-    return response?.data;
-  } catch (error) {
-    toast({
-      title: `Uh oh! `,
-      description: "Failed To Fetch Categories!!",
-    });
-  }
-};
-
-const fetchCategories = async () => {
-  try {
-    const response = await axios.get("/categories");
-    return response?.data.categories;
-  } catch (error: any) {
-    toast({
-      title: `Uh oh! `,
-      description: "Failed To Fetch Categories!!",
-    });
-  }
-};
+import useAxiosPrivate from "@/hooks/useAxiosPrivate";
 
 const ProductCategoryInfo = ({ isFormDisabled = false }: any) => {
   const form = useFormContext();
+  const axiosPrivate = useAxiosPrivate();
+
+  const fetchCategoryByParentId = async (parentId: string) => {
+    try {
+      const response = await axiosPrivate.get(
+        `/categories/subcategories/${parentId}`
+      );
+      return response?.data;
+    } catch (error) {
+      toast({
+        title: `Uh oh! `,
+        description: "Failed To Fetch Categories!!",
+      });
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await axiosPrivate.get("/categories");
+      return response?.data.data;
+    } catch (error: any) {
+      toast({
+        title: `Uh oh! `,
+        description: "Failed To Fetch Categories!!",
+      });
+    }
+  };
   const { data: categories = [], isLoading: isLoadingCat } = useQuery({
     queryKey: ["categories"],
     queryFn: fetchCategories,
@@ -120,7 +123,7 @@ const ProductCategoryInfo = ({ isFormDisabled = false }: any) => {
                           <CommandGroup>
                             {categories?.map((cat: Category) => (
                               <CommandItem
-                                value={cat.id}
+                                value={cat.name}
                                 key={cat.id}
                                 onSelect={() => {
                                   form.resetField("subCategoryId", {
@@ -204,7 +207,7 @@ const ProductCategoryInfo = ({ isFormDisabled = false }: any) => {
                             <CommandList>
                               {subCategories.map((subCat: Category) => (
                                 <CommandItem
-                                  value={subCat.id}
+                                  value={subCat.name}
                                   key={subCat.id}
                                   onSelect={() => {
                                     form.resetField("subSubCategoryId", {
@@ -280,7 +283,7 @@ const ProductCategoryInfo = ({ isFormDisabled = false }: any) => {
                           <CommandList>
                             {subSubCategories.map((cat: Category) => (
                               <CommandItem
-                                value={cat.id}
+                                value={cat.name}
                                 key={cat.id}
                                 onSelect={() => {
                                   form.setValue("subSubCategoryId", {

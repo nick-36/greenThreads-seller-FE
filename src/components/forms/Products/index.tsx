@@ -1,29 +1,21 @@
 "use client";
 import useMultiStep from "@/hooks/useMultiStep";
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import ProductBasicInfo from "@/components/forms/Products/ProductBasicInfo";
 import ProductCategoryInfo from "@/components/forms/Products/ProductCategoryInfo";
-import ProductVariations from "@/components/forms/Products/ProductVariations";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import productValidationSchema from "@/lib/validation/productValidation";
 import { Form } from "@/components/ui/form";
 import z from "zod";
-import ProductCombinations from "./ProductCombinations";
-import {
-  formatCombinations,
-  formatVariationData,
-  generateProductVariations,
-} from "@/lib/utils";
 import ProductImages from "./ProductImages";
 import DetailsPreview from "@/components/forms/Products/Preview";
 import Stepper from "@/components/shared/Stepper";
 import ConfirmationModal from "@/components/forms/Products/Confirmation";
 import { useMutation } from "@tanstack/react-query";
-import axios from "@/lib/utils/axios";
 import { useToast } from "@/components/ui/use-toast";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ProductStatus } from "@/lib/utils/types/CategoryType";
 import { DELIVERY_RANGE } from "@/lib/utils/constants";
 import useAxiosPrivate from "@/hooks/useAxiosPrivate";
@@ -31,7 +23,6 @@ import useAxiosPrivate from "@/hooks/useAxiosPrivate";
 type ProductFormData = z.infer<typeof productValidationSchema>;
 let renderCount: number = 0;
 const MultiStepsForm = ({ product }: any) => {
-  console.log(product, "PRODUCT");
   const params = useParams();
   const {
     productName = "",
@@ -47,14 +38,14 @@ const MultiStepsForm = ({ product }: any) => {
     width = 0,
     length = 0,
     categories = [],
-    variations = [],
-    combinations = [],
+    productImages = [],
   } = product ?? {};
 
   const initialState: Partial<ProductFormData> = {
     productName,
     description,
     status: isActive ? ProductStatus["ACTIVE"] : ProductStatus["INACTIVE"],
+    productImages: productImages,
     retailPrice: originalPrice,
     discountPercentage,
     discountedPrice,
@@ -70,10 +61,6 @@ const MultiStepsForm = ({ product }: any) => {
     subSubCategoryId: categories[2]
       ? { id: categories[2].id, name: categories[2].name }
       : { id: null, name: "" },
-    variations: variations.length
-      ? formatVariationData(variations)
-      : [{ variantName: "", variantId: null, variationOptions: [] }],
-    combinations: combinations?.length ? formatCombinations(combinations) : [],
   };
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [isDisacardModalOpen, setIsDisCardModalOpen] = useState(false);
@@ -140,12 +127,6 @@ const MultiStepsForm = ({ product }: any) => {
         return await axiosPrivate.post("/products", payload);
       }
     },
-    onMutate: (variables) => {
-      // A mutation is about to happen!
-
-      // Optionally return a context containing data to use when for example rolling back
-      return { id: 1 };
-    },
     onError: (error: any) => {
       const errorData = error.response.data;
       console.log(errorData, "ERRORDAT");
@@ -164,27 +145,13 @@ const MultiStepsForm = ({ product }: any) => {
         title: "Great!",
         description: message,
       });
-      router.push(`/products/${data?.product?.id}/inventory`);
+      router.push(`/products/${params.id ?? data?.product?.id}/inventory`);
     },
   });
 
-  console.log(
-    {
-      values: form.getValues(),
-      errors: form.formState.errors,
-    },
-
-    "FORMSTATE"
-  );
-
-  const generateCombinations = () => {
-    const selectedVariations = form.getValues("variations");
-    const allCombinations = generateProductVariations(selectedVariations);
-    form.setValue("combinations", allCombinations);
-  };
+  console.log(form.getValues(), "FORMVALUE");
 
   const onFormSubmit = async (data: ProductFormData) => {
-    console.log(data, "DATA");
     createUpdateProduct(data);
   };
 

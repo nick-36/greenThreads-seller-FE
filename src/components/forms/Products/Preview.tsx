@@ -64,6 +64,8 @@ const Preview = ({ onSave, onDiscard }: any) => {
   const form = useFormContext();
   const params = useParams();
 
+  console.log("formState", form.getValues());
+
   const categoriesData = [
     {
       category: form.getValues("categoryId"),
@@ -343,9 +345,7 @@ const Preview = ({ onSave, onDiscard }: any) => {
                 >
                   <CardHeader>
                     <CardTitle>Product Images</CardTitle>
-                    <CardDescription>
-                      Lipsum dolor sit amet, consectetur adipiscing elit
-                    </CardDescription>
+                    <CardDescription>Images of Products</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="grid gap-2">
@@ -353,16 +353,22 @@ const Preview = ({ onSave, onDiscard }: any) => {
                         alt="Product image"
                         className="aspect-square w-full rounded-md object-cover"
                         height="300"
-                        src="/assets/placeholder.svg"
+                        src={
+                          form.getValues("productImages")?.[0]?.url ??
+                          "/assets/placeholder.svg"
+                        }
                         width="300"
                       />
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-2 gap-2">
                         <button>
                           <Image
                             alt="Product image"
                             className="aspect-square w-full rounded-md object-cover"
                             height="84"
-                            src="/assets/placeholder.svg"
+                            src={
+                              form.getValues("productImages")?.[1]?.url ??
+                              "/assets/placeholder.svg"
+                            }
                             width="84"
                           />
                         </button>
@@ -371,14 +377,41 @@ const Preview = ({ onSave, onDiscard }: any) => {
                             alt="Product image"
                             className="aspect-square w-full rounded-md object-cover"
                             height="84"
-                            src="/assets/placeholder.svg"
+                            src={
+                              form.getValues("productImages")?.[2]?.url ??
+                              "/assets/placeholder.svg"
+                            }
                             width="84"
                           />
                         </button>
-                        <button className="flex aspect-square w-full items-center justify-center rounded-md border border-dashed">
+                        <button>
+                          <Image
+                            alt="Product image"
+                            className="aspect-square w-full rounded-md object-cover"
+                            height="84"
+                            src={
+                              form.getValues("productImages")?.[3]?.url ??
+                              "/assets/placeholder.svg"
+                            }
+                            width="84"
+                          />
+                        </button>
+                        <button>
+                          <Image
+                            alt="Product image"
+                            className="aspect-square w-full rounded-md object-cover"
+                            height="84"
+                            src={
+                              form.getValues("productImages")?.[4]?.url ??
+                              "/assets/placeholder.svg"
+                            }
+                            width="84"
+                          />
+                        </button>
+                        {/* <button className="flex aspect-square w-full items-center justify-center rounded-md border border-dashed">
                           <Upload className="h-4 w-4 text-muted-foreground" />
                           <span className="sr-only">Upload</span>
-                        </button>
+                        </button> */}
                       </div>
                     </div>
                   </CardContent>

@@ -27,6 +27,14 @@ import {
 } from "@/components/ui/select";
 import { DELIVERY_RANGE } from "@/lib/utils/constants";
 import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Info } from "lucide-react";
 
 const ProductBasicInfo = () => {
   const form = useFormContext();
@@ -59,7 +67,24 @@ const ProductBasicInfo = () => {
     <Card x-chunk="dashboard-07-chunk-0">
       <CardHeader>
         <CardTitle>Product Details</CardTitle>
-        <CardDescription>Add Vital Product Informations</CardDescription>
+        <CardDescription className="flex items-center gap-4">
+          <span>Add Vital Product Informations</span>
+          <TooltipProvider>
+            <Tooltip delayDuration={250}>
+              <TooltipTrigger>
+                <Info className="h-5 w-5" />
+              </TooltipTrigger>
+              <TooltipContent
+                align="start"
+                side="bottom"
+                sideOffset={6}
+                className="flex max-w-60 flex-col space-y-1.5 border bg-background py-2 font-semibold text-foreground"
+              >
+                <span>Make sure to create Brand before products</span>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid md:grid-cols-3 gap-6">

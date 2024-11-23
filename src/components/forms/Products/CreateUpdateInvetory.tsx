@@ -77,6 +77,215 @@ interface CreateUpdateInventoryProps {
 
 type skusFormData = z.infer<typeof variationsValidationSchema>;
 
+// Extract cell components into proper React components
+const TitleCell = ({ row, table, column, form, isDisabled }: any) => {
+  const formValue = form.getValues(`skus.${row.id}.title`);
+  const [value, setValue] = useState("");
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(e.target.value);
+  };
+
+  const onBlur = (field: any) => {
+    table.options.meta?.updateData(row.index, column.id, value);
+    field.onChange(value);
+  };
+
+  useEffect(() => {
+    setValue(formValue);
+  }, [formValue]);
+
+  return (
+    <FormField
+      name={`skus.${row.id}.title`}
+      control={form.control}
+      render={({ field }) => (
+        <FormItem className="col-span-1">
+          <FormLabel htmlFor={`skus.${row.id}.title`} className="sr-only">
+            Title
+          </FormLabel>
+          <FormControl>
+            <Input
+              id={`skus.${row.id}.title`}
+              onChange={handleChange}
+              defaultValue={formValue}
+              onBlur={() => onBlur(field)}
+              disabled={isDisabled}
+            />
+          </FormControl>
+        </FormItem>
+      )}
+    />
+  );
+};
+
+const SizeCell = ({ row, form, variationDetails }: any) => {
+  const { size } = row.original;
+  const formValue = form.getValues(`skus.${row.id}.size.name`);
+  const [value, setValue] = useState("");
+
+  useEffect(() => {
+    setValue(formValue);
+  }, [formValue]);
+
+  return (
+    <FormField
+      control={form.control}
+      name={`skus.${row.id}.size.name`}
+      render={({ field }) => {
+        return (
+          <FormItem className="col-span-4 md:col-span-1">
+            <FormLabel htmlFor="size" className="sr-only">
+              Variant Type
+            </FormLabel>
+            <FormControl>
+              <Select
+                disabled={size.id}
+                onValueChange={(val) => {
+                  const selectedSize = variationDetails?.sizes.find(
+                    (item: any) => item.name === val
+                  );
+                  if (selectedSize) {
+                    field.onChange(val);
+                    form.setValue(
+                      `skus.${row.id}.size.id`,
+                      selectedSize.id
+                    );
+                  }
+                }}
+                {...field}
+              >
+                <SelectTrigger
+                  id={`skus.${row.id}.size.name`}
+                  aria-label="Select Size"
+                >
+                  <SelectValue placeholder="Select Size" />
+                </SelectTrigger>
+                <SelectContent>
+                  {variationDetails?.sizes.map((item: any) => {
+                    return (
+                      <SelectItem key={item.id} value={item?.name}>
+                        {item?.name}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        );
+      }}
+    />
+  );
+};
+
+const ColorCell = ({ row, form, variationDetails }: any) => {
+  const { color } = row.original;
+  const formValue = form.getValues(`skus.${row.id}.color.name`);
+  const [value, setValue] = useState("");
+
+  useEffect(() => {
+    setValue(formValue);
+  }, [formValue]);
+
+  return (
+    <FormField
+      control={form.control}
+      name={`skus.${row.id}.color.name`}
+      render={({ field }) => {
+        return (
+          <FormItem className="col-span-4 md:col-span-1">
+            <FormLabel htmlFor="color" className="sr-only">
+              Color
+            </FormLabel>
+            <FormControl>
+              <Select
+                disabled={color.id}
+                onValueChange={(val) => {
+                  const selectedColor = variationDetails?.colors.find(
+                    (item: any) => item.name === val
+                  );
+                  if (selectedColor) {
+                    field.onChange(val);
+                    form.setValue(
+                      `skus.${row.id}.color.id`,
+                      selectedColor.id
+                    );
+                  }
+                }}
+                {...field}
+              >
+                <SelectTrigger
+                  id={`skus.${row.id}.color.name`}
+                  aria-label="Select Color"
+                >
+                  <SelectValue placeholder="Select Color" />
+                </SelectTrigger>
+                <SelectContent>
+                  {variationDetails?.colors?.map((item: { name: string; id: string }, idx: number) => {
+                    return (
+                      <SelectItem key={idx} value={item?.name}>
+                        {item?.name}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        );
+      }}
+    />
+  );
+};
+
+const StockCell = ({ row, table, column, form, isDisabled }: any) => {
+  const formValue = form.getValues(`skus.${row.id}.availableStock`);
+  const [value, setValue] = useState(0);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(Number(e.target.value));
+  };
+
+  const onBlur = (field: any) => {
+    table.options.meta?.updateData(row.index, column.id, value);
+    field.onChange(value);
+  };
+
+  useEffect(() => {
+    setValue(formValue);
+  }, [formValue]);
+
+  return (
+    <FormField
+      name={`skus.${row.id}.availableStock`}
+      control={form.control}
+      render={({ field }) => (
+        <FormItem className="col-span-1 md:max-w-28">
+          <FormLabel
+            htmlFor={`skus.${row.id}.availableStock`}
+            className="sr-only"
+          >
+            stock
+          </FormLabel>
+          <FormControl>
+            <Input
+              id={`skus.${row.id}.availableStock`}
+              type="number"
+              onChange={handleChange}
+              defaultValue={formValue}
+              onBlur={() => onBlur(field)}
+              disabled={isDisabled}
+            />
+          </FormControl>
+        </FormItem>
+      )}
+    />
+  );
+};
+
 const CreateUpdateInventory: React.FC<CreateUpdateInventoryProps> = ({
   isDisabled = false,
   variationDetails,
@@ -143,225 +352,53 @@ const CreateUpdateInventory: React.FC<CreateUpdateInventoryProps> = ({
       id: "title",
       accessorKey: "title",
       header: "Title",
-      cell: ({ row, table, column }: any) => {
-        const formValue = form.getValues(`skus.${row.id}.title`);
-        const [value, setValue] = useState("");
-
-        const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-          setValue(e.target.value);
-        };
-
-        const onBlur = (field: any) => {
-          table.options.meta?.updateData(row.index, column.id, value);
-          field.onChange(value);
-        };
-
-        useEffect(() => {
-          setValue(formValue);
-        }, [formValue]);
-
-        return (
-          <FormField
-            name={`skus.${row.id}.title`}
-            control={form.control}
-            render={({ field }) => (
-              <FormItem className="col-span-1">
-                <FormLabel htmlFor={`skus.${row.id}.title`} className="sr-only">
-                  Title
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    id={`skus.${row.id}.title`}
-                    onChange={handleChange}
-                    defaultValue={formValue}
-                    onBlur={() => onBlur(field)}
-                    disabled={isDisabled}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        );
-      },
+      cell: ({ row, table, column }: any) => (
+        <TitleCell 
+          row={row} 
+          table={table} 
+          column={column} 
+          form={form} 
+          isDisabled={isDisabled} 
+        />
+      ),
     },
     {
       id: "size",
       accessorKey: "size",
       header: "Size",
-      cell: ({ row }: any) => {
-        const { size } = row.original;
-        const formValue = form.getValues(`skus.${row.id}.size.name`);
-        const [value, setValue] = useState("");
-
-        useEffect(() => {
-          setValue(formValue);
-        }, [formValue]);  
-
-        return (
-          <FormField
-            control={form.control}
-            name={`skus.${row.id}.size.name`}
-            render={({ field }) => {
-              return (
-                <FormItem className="col-span-4 md:col-span-1">
-                  <FormLabel htmlFor="size" className="sr-only">
-                    Variant Type
-                  </FormLabel>
-                  <FormControl>
-                    <Select
-                      disabled={size.id}
-                      onValueChange={(val) => {
-                        const selectedSize = variationDetails?.sizes.find(
-                          (item: any) => item.name === val
-                        );
-                        if (selectedSize) {
-                          field.onChange(val);
-                          form.setValue(
-                            `skus.${row.id}.size.id`,
-                            selectedSize.id
-                          );
-                        }
-                      }}
-                      {...field}
-                    >
-                      <SelectTrigger
-                        id={`skus.${row.id}.size.name`}
-                        aria-label="Select Size"
-                      >
-                        <SelectValue placeholder="Select Size" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {variationDetails?.sizes.map((item: any) => {
-                          return (
-                            <SelectItem key={item.id} value={item?.name}>
-                              {item?.name}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
-          />
-        );
-      },
+      cell: ({ row }: any) => (
+        <SizeCell 
+          row={row} 
+          form={form} 
+          variationDetails={variationDetails} 
+        />
+      ),
     },
     {
       id: "color",
       accessorKey: "color",
       header: "Color",
-      cell: ({ row }: any) => {
-        const { color } = row.original;
-        const formValue = form.getValues(`skus.${row.id}.color.name`);
-        const [value, setValue] = useState("");
-
-        useEffect(() => {
-          setValue(formValue);
-        }, [formValue]);
-
-        return (
-          <FormField
-            control={form.control}
-            name={`skus.${row.id}.color.name`}
-            render={({ field }) => {
-              return (
-                <FormItem className="col-span-4 md:col-span-1">
-                  <FormLabel htmlFor="color" className="sr-only">
-                    Color
-                  </FormLabel>
-                  <FormControl>
-                    <Select
-                      disabled={color.id}
-                      onValueChange={(val) => {
-                        const selectedColor = variationDetails?.colors.find(
-                          (item: any) => item.name === val
-                        );
-                        if (selectedColor) {
-                          field.onChange(val);
-                          form.setValue(
-                            `skus.${row.id}.color.id`,
-                            selectedColor.id
-                          );
-                        }
-                      }}
-                      {...field}
-                    >
-                      <SelectTrigger
-                        id={`skus.${row.id}.color.name`}
-                        aria-label="Select Color"
-                      >
-                        <SelectValue placeholder="Select Color" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {variationDetails?.colors?.map((item, idx: number) => {
-                          return (
-                            <SelectItem key={idx} value={item?.name}>
-                              {item?.name}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
-          />
-        );
-      },
+      cell: ({ row }: any) => (
+        <ColorCell 
+          row={row} 
+          form={form} 
+          variationDetails={variationDetails} 
+        />
+      ),
     },
     {
       id: "stock",
       accessorKey: "availableStock",
       header: "Stock",
-      cell: ({ row, table, column }: any) => {
-        const formValue = form.getValues(`skus.${row.id}.availableStock`);
-        const [value, setValue] = useState(0);
-
-        const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-          setValue(Number(e.target.value));
-        };
-
-        const onBlur = (field: any) => {
-          table.options.meta?.updateData(row.index, column.id, value);
-          field.onChange(value);
-        };
-
-        useEffect(() => {
-          setValue(formValue);
-        }, [formValue]);
-
-        return (
-          <FormField
-            name={`skus.${row.id}.availableStock`}
-            control={form.control}
-            render={({ field }) => (
-              <FormItem className="col-span-1 md:max-w-28">
-                <FormLabel
-                  htmlFor={`skus.${row.id}.availableStock`}
-                  className="sr-only"
-                >
-                  stock
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    id={`skus.${row.id}.availableStock`}
-                    type="number"
-                    onChange={handleChange}
-                    defaultValue={formValue}
-                    onBlur={() => onBlur(field)}
-                    disabled={isDisabled}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        );
-      },
+      cell: ({ row, table, column }: any) => (
+        <StockCell 
+          row={row} 
+          table={table} 
+          column={column} 
+          form={form} 
+          isDisabled={isDisabled} 
+        />
+      ),
     },
     {
       id: "action",

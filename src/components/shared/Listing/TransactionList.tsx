@@ -1,6 +1,6 @@
 "use client";
-import React from "react";
-import { File, ListFilter, Search } from "lucide-react";
+import React, { useCallback, useState } from "react";
+import { File, IndianRupee, ListFilter, Search } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -8,46 +8,74 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import DataTable from "@/components/shared/Table/Table";
+
+import { DataTable } from "@/components/shared/Table/TableV2";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ColumnDef } from "@tanstack/react-table";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "@/components/ui/use-toast";
+import useAxiosPrivate from "@/hooks/useAxiosPrivate";
+import { formatDateString } from "@/lib/utils";
+import useDebounce from "@/hooks/useDebounce";
+import { useDataTable } from "@/hooks/useDataTable";
+import { useSearchParams } from "next/navigation";
 
-const TransactionList = ({ data }: any) => {
+const TransactionList = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 500); // Debounce search term with 500ms delay
+  const [selectedDuration, setSelectedDuration] = useState("all");
+  const axiosPrivate = useAxiosPrivate();
+  const searchParams = useSearchParams();
+  const search = Object.fromEntries(searchParams);
+  const page = search.page;
+
+  const fetchPayments = async (search: string, page: string) => {
+    try {
+      const response = await axiosPrivate.get(`/payments`, {
+        params: {
+          search,
+          duration: selectedDuration,
+          page,
+        },
+      });
+      return response?.data;
+    } catch (error: any) {
+      const errMsg = error?.response?.data?.message ?? "Failed To Fetch Data!!";
+      console.log(error, "ERROR");
+      toast({
+        title: `Uh oh! `,
+        description: errMsg,
+      });
+    }
+  };
+  const {
+    data = {},
+    isLoading: isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["payments", selectedDuration, page, debouncedSearchTerm],
+    queryFn: () => fetchPayments(debouncedSearchTerm, page),
+  });
+
+  const handleSearch = useCallback((event: any) => {
+    setSearchTerm(event.target.value);
+  }, []); // useCallback ensures handleSearch function is stable across renders
+
   const columns: ColumnDef<any>[] = [
     {
       accessorKey: "name",
       header: "Customer",
       cell: ({ row }) => {
-        const { name, email } = row?.original;
+        const { orderItem } = row?.original;
+        const customerDetails = orderItem.order.customerDetails;
         return (
           <>
-            <div className="font-medium">{name}</div>
+            <div className="font-medium">{customerDetails?.name}</div>
             <div className="text-sm text-muted-foreground md:inline">
-              {email}
+              {customerDetails?.email}
             </div>
-          </>
-        );
-      },
-    },
-    {
-      accessorKey: "type",
-      header: "Type",
-      cell: ({ row }) => {
-        const { type } = row?.original;
-        return (
-          <>
-            <div className="sm:table-cell">{type}</div>
           </>
         );
       },
@@ -72,7 +100,8 @@ const TransactionList = ({ data }: any) => {
       header: "Date",
       cell: ({ row }) => {
         const { date } = row?.original;
-        return <div className="md:table-cell">{date}</div>;
+        const formattedDate = formatDateString(date);
+        return <div className="md:table-cell">{formattedDate}</div>;
       },
     },
     {
@@ -80,48 +109,44 @@ const TransactionList = ({ data }: any) => {
       header: "Amount",
       cell: ({ row }) => {
         const { amount } = row?.original;
-        return <div className="text-center md:table-cell">${amount}</div>;
+        return (
+          <div className="text-center md:table-cell">
+            <span className="flex items-center">
+              <IndianRupee className="h-3 w-3" />
+              <span>{amount}</span>
+            </span>
+          </div>
+        );
       },
     },
   ];
+
+  const { table } = useDataTable({
+    data: data?.data?.payments,
+    columns: columns,
+    pageCount: data?.pagination?.pageCount ?? 1,
+    // optional props
+    defaultPerPage: 10,
+  });
+
   return (
     <div>
-      <Tabs defaultValue="week">
+      <Tabs
+        defaultValue="all"
+        value={selectedDuration}
+        onValueChange={(val) => {
+          setSelectedDuration(val);
+        }}
+      >
         <div className="flex items-center p-6">
           <TabsList>
-            <TabsTrigger value="week">Week</TabsTrigger>
-            <TabsTrigger value="month">Month</TabsTrigger>
-            <TabsTrigger value="year">Year</TabsTrigger>
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="weekly">Week</TabsTrigger>
+            <TabsTrigger value="monthly">Month</TabsTrigger>
+            <TabsTrigger value="yearly">Year</TabsTrigger>
           </TabsList>
-          <div className="ml-auto flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 gap-1 text-sm"
-                >
-                  <ListFilter className="h-3.5 w-3.5" />
-                  <span className="sr-only sm:not-sr-only">Filter</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuCheckboxItem checked>
-                  Fulfilled
-                </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem>Declined</DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem>Refunded</DropdownMenuCheckboxItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Button size="sm" variant="outline" className="h-7 gap-1 text-sm">
-              <File className="h-3.5 w-3.5" />
-              <span className="sr-only sm:not-sr-only">Export</span>
-            </Button>
-          </div>
         </div>
-        <TabsContent value="week" className="px-6">
+        <TabsContent value={selectedDuration} className="px-6">
           <Card x-chunk="dashboard-05-chunk-3" className="border-dashed">
             <div className="flex flex-col space-y-3 md:flex-row justify-between p-6 px-4 md:px-7">
               <div
@@ -141,11 +166,13 @@ const TransactionList = ({ data }: any) => {
                   type="search"
                   placeholder="Search..."
                   className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]"
+                  onChange={handleSearch}
+                  value={searchTerm}
                 />
               </div>
             </div>
             <CardContent>
-              <DataTable columns={columns} data={data} />
+              <DataTable table={table} isLoading={isLoading} />
             </CardContent>
           </Card>
         </TabsContent>

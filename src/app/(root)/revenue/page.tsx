@@ -71,7 +71,7 @@ const page = () => {
 
   return (
     <ServerPageWrapper headerProps={{ headerTitle: "Revenue" }}>
-      <TransactionList data={data} />
+      <TransactionList />
     </ServerPageWrapper>
   );
 };

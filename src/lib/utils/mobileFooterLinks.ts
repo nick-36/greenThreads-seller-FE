@@ -15,6 +15,11 @@ export const mobileFooterLinks = [
     icon: "revenue",
   },
   {
+    name: "Brand",
+    href: "/brand",
+    icon: "brand",
+  },
+  {
     name: "Products",
     href: "/products",
     icon: "products",

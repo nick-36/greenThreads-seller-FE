@@ -23,7 +23,7 @@ import {
 import * as z from "zod";
 import Image from "next/image";
 import { cn, isBase64Image } from "@/lib/utils";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useSignUp, useUser } from "@clerk/nextjs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -46,7 +46,6 @@ const AccountProfile = ({
   showPasswordField = false,
   isSignUpFlow = false,
 }: AccountProfileProps) => {
-  const [files, setFiles] = useState<File[]>([]);
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const { isLoaded, signUp, setActive } = useSignUp();
@@ -66,7 +65,7 @@ const AccountProfile = ({
         lastName: "",
         username: "",
         email: "",
-        mobile: "",
+        phoneNumber: "",
         password: "",
       };
     }, [user]),
@@ -81,7 +80,7 @@ const AccountProfile = ({
         lastName: user?.lastName || "",
         username: user?.username || "",
         email: user?.primaryEmailAddress?.emailAddress || "",
-        mobile: user?.phoneNumbers[0]?.phoneNumber || "",
+        phoneNumber: (user?.unsafeMetadata?.phoneNumber as string) ?? "",
         password: "",
       });
     }
@@ -89,6 +88,7 @@ const AccountProfile = ({
 
   const onFormSubmit = async (values: UserFormData) => {
     setIsLoading(true);
+
     if (isSignUpFlow) {
       if (!isLoaded) return;
 
@@ -100,7 +100,8 @@ const AccountProfile = ({
           lastName: values?.lastName,
           username: values?.username,
           unsafeMetadata: {
-            phoneNumber: values?.mobile,
+            phoneNumber: values?.phoneNumber,
+            role: "SELLER",
           },
         });
 
@@ -114,60 +115,48 @@ const AccountProfile = ({
         console.error(JSON.stringify(err, null, 2));
       }
     } else {
-      //TO DO CALL BACKEND API FOR UPDATE USER
       if (!isLoaded) {
         return;
       }
+      if (values?.profileImg) {
+        const blob = values.profileImg;
+
+        const hasImageChanged = isBase64Image(blob);
+        if (hasImageChanged) {
+          user?.setProfileImage({
+            file: blob,
+          });
+        }
+      }
 
       try {
-        await signUp.update({
-          emailAddress: values.email,
-          password: values.password,
+        await user?.update({
           firstName: values?.firstName,
           lastName: values?.lastName,
           username: values?.username,
           unsafeMetadata: {
-            phoneNumber: values?.mobile,
+            phoneNumber: values?.phoneNumber,
+            role: user?.unsafeMetadata?.role,
           },
         });
 
-        // send the email.
-        // await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-
-        // change the UI to our pending section.
-        // setPendingVerification(true);
+        toast({
+          title: "User Update Successfully",
+          duration: 2000,
+        });
       } catch (err: any) {
         console.error(JSON.stringify(err, null, 2));
       }
     }
     setIsLoading(false);
   };
-  console.log(form.formState.errors, "FORM");
-
-  async function onSubmit(values: z.infer<typeof UserValidationSignUp>) {
-    const blob = values.profileImg;
-
-    const hasImageChanged = isBase64Image(blob);
-
-    if (hasImageChanged) {
-      //   const imgRes = await startUpload(files);
-      //   if (imgRes && imgRes[0]?.url) {
-      //     values.profileImg = imgRes[0].url;
-      //   }
-    }
-
-    // if (pathname === "/profile/edit") {
-    //   router.back();
-    // } else {
-    //   router.push("/");
-    // }
-  }
 
   const onPressVerify = async (otp: string) => {
+    setIsLoading(true);
+
     if (!isLoaded) {
       return;
     }
-
     try {
       const completeSignUp = await signUp.attemptEmailAddressVerification({
         code: otp,
@@ -193,6 +182,7 @@ const AccountProfile = ({
         duration: 3000,
       });
     }
+    setIsLoading(false);
   };
 
   const handleImage = (
@@ -203,8 +193,6 @@ const AccountProfile = ({
     const fileReader = new FileReader();
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
-      setFiles(Array.from(e.target.files));
-
       if (!file.type.includes("image")) return;
 
       fileReader.onload = async (event) => {
@@ -222,7 +210,7 @@ const AccountProfile = ({
           <h2 className="text-xl font-semibold tracking-tight">
             Enter the OTP received in your email
           </h2>
-          <OTPScreen onPressVerify={onPressVerify} />
+          <OTPScreen onPressVerify={onPressVerify} isLoading={isLoading} />
         </div>
       </div>
     );
@@ -246,53 +234,60 @@ const AccountProfile = ({
               onSubmit={form?.handleSubmit(onFormSubmit)}
               className={cn("grid w-full items-start gap-6 md:pt-0")}
             >
-              <FormField
-                control={form.control}
-                name="profileImg"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col items-center gap-4 mt-2">
-                    <FormLabel className="relative">
-                      {field.value ? (
-                        <Image
-                          src={field.value}
-                          alt="profile photo"
-                          width={96}
-                          height={96}
-                          priority
-                          className="rounded-full border-2 border-white aspect-square object-cover"
+              {!isSignUpFlow && (
+                <FormField
+                  control={form.control}
+                  name="profileImg"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col items-center gap-4 mt-2">
+                      <FormLabel className="relative">
+                        {field.value ? (
+                          <Image
+                            src={field.value}
+                            alt="profile photo"
+                            width={96}
+                            height={96}
+                            priority
+                            className="rounded-full border-2 border-white aspect-square object-cover"
+                          />
+                        ) : (
+                          <Image
+                            src={"/assets/male_avatar.svg"}
+                            alt="profile photo"
+                            width={96}
+                            height={96}
+                            priority
+                            className="rounded-full border-2 border-white aspect-square object-cover"
+                          />
+                        )}
+                        <Button
+                          type="button"
+                          className="h-8 w-8 rounded-full absolute bottom-0 right-0"
+                          size="icon"
+                          onClick={() => inputRef?.current?.click()}
+                        >
+                          <Camera
+                            size={16}
+                            strokeWidth={1}
+                            absoluteStrokeWidth
+                          />
+                        </Button>
+                      </FormLabel>
+                      <FormControl className="flex-1 hidden text-base-semibold text-gray-200">
+                        <Input
+                          ref={inputRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e: any) => handleImage(e, field.onChange)}
                         />
-                      ) : (
-                        <Image
-                          src={"/assets/male_avatar.svg"}
-                          alt="profile photo"
-                          width={96}
-                          height={96}
-                          priority
-                          className="rounded-full border-2 border-white aspect-square object-cover"
-                        />
-                      )}
-                      <Button
-                        className="h-8 w-8 rounded-full absolute bottom-0 right-0"
-                        size="icon"
-                        onClick={() => inputRef?.current?.click()}
-                      >
-                        <Camera size={16} strokeWidth={1} absoluteStrokeWidth />
-                      </Button>
-                    </FormLabel>
-                    <FormControl className="flex-1 hidden text-base-semibold text-gray-200">
-                      <Input
-                        ref={inputRef}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e: any) => handleImage(e, field.onChange)}
-                      />
-                    </FormControl>
+                      </FormControl>
 
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               <div
                 className={cn(
                   "grid w-full md:grid-cols-2 items-start gap-6 overflow-auto md:px-10 pt-4 p-4"
@@ -354,7 +349,7 @@ const AccountProfile = ({
                 />
                 <FormField
                   control={form.control}
-                  name="mobile"
+                  name="phoneNumber"
                   render={({ field }) => (
                     <FormItem className="grid gap-2">
                       <FormLabel>Mobile</FormLabel>

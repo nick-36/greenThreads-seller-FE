@@ -4,7 +4,6 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
 import {
   Form,
   FormControl,
@@ -12,15 +11,13 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from "@/components/ui/form";
-
 import React from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
+import { Icons } from "../ui/icons";
 
 const FormSchema = z.object({
   pin: z.string().min(6, {
@@ -28,7 +25,7 @@ const FormSchema = z.object({
   }),
 });
 
-const OTPScreen = ({ onPressVerify }: any) => {
+const OTPScreen = ({ onPressVerify,isLoading }: any) => {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -70,6 +67,7 @@ const OTPScreen = ({ onPressVerify }: any) => {
           )}
         />
         <Button type="submit" className="mx-auto">
+          {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
           Submit
         </Button>
       </form>

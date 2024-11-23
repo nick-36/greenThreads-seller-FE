@@ -21,6 +21,7 @@ import {
   ShoppingCart,
   BarChart,
   Tag,
+  Store,
 } from "lucide-react";
 import { useClerk } from "@clerk/clerk-react";
 import { usePathname, useRouter } from "next/navigation";
@@ -34,6 +35,7 @@ interface IconMapping {
 const iconMapping: IconMapping = {
   home: (props: any) => <Home className="h-4 w-4" {...props} />,
   orders: (props: any) => <ShoppingCart className="h-4 w-4" {...props} />,
+  brand: (props: any) => <Store className="h-4 w-4" {...props} />,
   revenue: (props: any) => <LineChart className="h-4 w-4" {...props} />,
   products: (props: any) => <Package className="h-4 w-4" {...props} />,
   barchart: (props: any) => <BarChart className="h-4 w-4" {...props} />,
@@ -64,11 +66,11 @@ const DesktopHeader = () => {
                   href={link.href}
                   key={link.href}
                   className={cn(
-                    "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
+                    "mx-[-0.65rem] text-sm flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
                     isActive ? "bg-muted/10 " : ""
                   )}
                 >
-                  {/* {iconMapping[link.icon]({ isActive })} */}
+                  {iconMapping[link.icon]({ isActive })}
                   {link.name}
                 </Link>
               );

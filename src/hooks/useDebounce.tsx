@@ -9,7 +9,6 @@ const useDebounce = (value: string, delay: number) => {
     }, delay);
 
     return () => {
-      console.log("CLEAN UP");
       clearTimeout(handler);
     };
   }, [value, delay]);

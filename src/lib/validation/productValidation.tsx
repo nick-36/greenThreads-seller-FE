@@ -48,30 +48,7 @@ export const productValidationSchema = z.object({
       name: z.string(),
     })
     .optional(),
-  variations: z
-    .array(
-      z.object({
-        id: z.string().uuid()?.optional(),
-        variantId: z.string().uuid().nullish(),
-        variantName: z.string().min(1, {
-          message: "Choose at least one variation",
-        }),
-        variationOptions: z
-          .array(
-            z.object({
-              name: z.string(),
-              id: z.string(),
-            })
-          )
-          .min(1, {
-            message: "Choose atleast one option",
-          }),
-      })
-    )
-    .min(1, {
-      message: "Choose at least one variation",
-    }),
-  combinations: z.any(),
+  productImages: z.array(z.string()),
 });
 
 export const categoryValidationSchema = z.object({
@@ -80,6 +57,13 @@ export const categoryValidationSchema = z.object({
   parentId: z.string().optional()?.nullable(),
   categoryImg: z.string().optional()?.nullable(),
   categorySlug: z.string()?.optional(),
+});
+
+export const brandValidationSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, "Brand Name is required"),
+  description: z.string().optional(),
+  brandImg: z.string().optional(),
 });
 
 export const variationsValidationSchema = z.object({
