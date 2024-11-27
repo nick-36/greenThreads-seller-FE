@@ -7,6 +7,7 @@ export default authMiddleware({
     "/sign-up",
     "/forgot-password",
     "/api/uploadthing",
+    "/api(.*)",
   ],
   afterAuth(auth, req) {
     // Handle users who aren't authenticated

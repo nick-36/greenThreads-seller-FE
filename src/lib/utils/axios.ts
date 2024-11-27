@@ -2,14 +2,14 @@ import axios from "axios";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_API_URL;
+const BASE_URL = process.env.NODE_ENV === 'production' ? process.env.NEXT_PUBLIC_BASE_API_URL_PROD : process.env.NEXT_PUBLIC_BASE_API_URL_DEV;
 
 export default axios.create({
   timeout: 30000,
   baseURL: BASE_URL,
   headers: {
     "Content-Type": "application/json",
-    "ngrok-skip-browser-warning": "69420",
+    // "ngrok-skip-browser-warning": "69420",
   },
 });
 
@@ -18,9 +18,9 @@ export const axiosPrivate = axios.create({
   baseURL: BASE_URL,
   headers: {
     "Content-Type": "application/json",
-    "ngrok-skip-browser-warning": "69420",
+    // "ngrok-skip-browser-warning": "69420",
   },
-  // withCredentials: true,
+  withCredentials: true,
 });
 export const withAuthorization = () => {
   return async (endpoint: string) => {
