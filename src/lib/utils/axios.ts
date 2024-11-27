@@ -2,7 +2,10 @@ import axios from "axios";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
-const BASE_URL = process.env.NODE_ENV === 'production' ? process.env.NEXT_PUBLIC_BASE_API_URL_PROD : process.env.NEXT_PUBLIC_BASE_API_URL_DEV;
+const BASE_URL =
+  process.env.NODE_ENV === "production"
+    ? process.env.NEXT_PUBLIC_BASE_API_URL_PROD
+    : process.env.NEXT_PUBLIC_BASE_API_URL_DEV;
 
 export default axios.create({
   timeout: 30000,
@@ -11,6 +14,7 @@ export default axios.create({
     "Content-Type": "application/json",
     // "ngrok-skip-browser-warning": "69420",
   },
+  withCredentials: true,
 });
 
 export const axiosPrivate = axios.create({
