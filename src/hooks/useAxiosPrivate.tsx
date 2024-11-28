@@ -9,7 +9,7 @@ const useAxiosPrivate = () => {
 
   useEffect(() => {
     const requestIntercept = axiosPrivate.interceptors.request.use(
-      async (config) => {
+      async (config: any) => {
         const accessToken = await getToken();
         console.log(accessToken, "TOKEN");
         if (!config.headers["Authorization"]) {
@@ -18,7 +18,7 @@ const useAxiosPrivate = () => {
         config.withCredentials = true;
         return config;
       },
-      (error) => Promise.reject(error)
+      (error: any) => Promise.reject(error)
     );
 
     // const responseIntercept = axiosPrivate.interceptors.response.use(

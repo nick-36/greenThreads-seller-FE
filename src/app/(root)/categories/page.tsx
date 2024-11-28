@@ -6,7 +6,6 @@ import axios from "@/lib/utils/axios";
 const fetchCategories = async () => {
   try {
     const res = await axios.get("/categories");
-  console.log(res, "CAT");
     if (res.data?.success) {
       return res.data;
     }

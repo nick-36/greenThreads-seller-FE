@@ -7,25 +7,55 @@ const BASE_URL =
     ? process.env.NEXT_PUBLIC_BASE_API_URL_PROD
     : process.env.NEXT_PUBLIC_BASE_API_URL_DEV;
 
-export default axios.create({
-  timeout: 30000,
+const instance = axios.create({
+  timeout: 80000,
   baseURL: BASE_URL,
   headers: {
     "Content-Type": "application/json",
     // "ngrok-skip-browser-warning": "69420",
   },
   withCredentials: true,
-});
+}) as any;
+
+instance.defaults.retries = 3;
+instance.defaults.retryDelay = 1000;
 
 export const axiosPrivate = axios.create({
-  timeout: 30000,
+  timeout: 100000,
   baseURL: BASE_URL,
   headers: {
     "Content-Type": "application/json",
     // "ngrok-skip-browser-warning": "69420",
   },
   withCredentials: true,
-});
+}) as any;
+
+axiosPrivate.defaults.retries = 3;
+axiosPrivate.defaults.retryDelay = 1000;
+
+const createRetryInterceptor = (instance: any) => {
+  return async (err: any) => {
+    const config = err.config;
+    if (!config || !config.retries) return Promise.reject(err);
+
+    config.retryCount = config.retryCount ?? 0;
+    if (config.retryCount >= config.retries) {
+      return Promise.reject(err);
+    }
+
+    config.retryCount += 1;
+    const delay = config.retryDelay || 1000;
+    await new Promise((resolve) => setTimeout(resolve, delay));
+    return instance(config);
+  };
+};
+
+instance.interceptors.response.use(undefined, createRetryInterceptor(instance));
+axiosPrivate.interceptors.response.use(
+  undefined,
+  createRetryInterceptor(axiosPrivate)
+);
+
 export const withAuthorization = () => {
   return async (endpoint: string) => {
     try {
@@ -54,3 +84,6 @@ export const withAuthorization = () => {
     }
   };
 };
+
+
+export default instance;
