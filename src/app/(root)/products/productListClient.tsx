@@ -29,13 +29,13 @@ const ProductListClient = () => {
   const searchParams = useSearchParams();
   const search = Object.fromEntries(searchParams);
   const page = search.page;
-  const debouncedSearchTerm = useDebounce(searchTerm, 500); // Debounce search term with 500ms delay
-  const [tab, setTab] = useState("all"); // Example initial tab value
+  const debouncedSearchTerm = useDebounce(searchTerm, 500); 
+  const [tab, setTab] = useState("all");
   const { data, isLoading } = useProducts(debouncedSearchTerm, tab, page);
 
   const handleSearch = useCallback((event: any) => {
     setSearchTerm(event.target.value);
-  }, []); // useCallback ensures handleSearch function is stable across renders
+  }, []); 
 
   const handleTabChange = (newTab: string) => {
     setTab(newTab);

@@ -31,7 +31,7 @@ const Analytics = () => {
       });
     }
   };
-  const { data, isLoading: isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["revenue", duration],
     queryFn: () => fetchRevenueInfo(),
   });
@@ -90,7 +90,10 @@ const Analytics = () => {
               </CardHeader>
               <TabsContent value={duration} className="space-y-4">
                 <CardContent className="pl-2">
-                  <Overview data={data?.periodicRevenue} />
+                  <Overview
+                    data={data?.periodicRevenue}
+                    isLoading={isLoading}
+                  />
                 </CardContent>
               </TabsContent>
             </Tabs>
@@ -103,7 +106,7 @@ const Analytics = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <RecentSales data={data?.recentSales} />
+              <RecentSales data={data?.recentSales} isLoading={isLoading} />
             </CardContent>
           </Card>
         </div>

@@ -85,5 +85,4 @@ export const withAuthorization = () => {
   };
 };
 
-
 export default instance;

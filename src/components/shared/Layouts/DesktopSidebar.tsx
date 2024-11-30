@@ -53,7 +53,7 @@ const DesktopSidebar = () => {
             </div>
             <span className=""></span>
           </Link>
-          <NotificationBell notificationCount={10} />
+          {/* <NotificationBell notificationCount={10} /> */}
         </div>
         <div className="flex-1">
           <nav className="grid items-start px-2 text-sm font-medium lg:px-4">

@@ -17,7 +17,6 @@ const fetchCategories = async () => {
 
 const Categories = async () => {
   const categories = await fetchCategories();
-  console.log(categories, "CATEG");
   return (
     <ServerPageWrapper>
       <CategoryList categories={categories} />

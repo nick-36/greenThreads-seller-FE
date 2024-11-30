@@ -202,7 +202,7 @@ const OrderList = () => {
       header: "Status",
       cell: ({ row }: any) => {
         const { deliveryStatus, id } = row?.original;
-        
+
         return (
           <Select
             value={deliveryStatus}
