@@ -5,5 +5,8 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
+[dev]
+    command="npm run start"
+
 [build.environment]
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
