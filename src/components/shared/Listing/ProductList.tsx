@@ -56,7 +56,6 @@ const ProductList = ({
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
   const { mutate: bulkCreation, isPending } = useMutation({
     mutationFn: async (payload: any) => {
-      console.log("PAYLOAD", payload);
       await axiosPrivate.post("/products/bulk-upload", { fileUrl: payload });
     },
     onError: (error: any) => {
@@ -68,7 +67,6 @@ const ProductList = ({
       });
     },
     onSuccess: () => {
-      console.log("SUCCESS");
       setIsBulkModalOpen(false);
       setUploadedFileUrl(null);
       toast({

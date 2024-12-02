@@ -149,8 +149,6 @@ const MultiStepsForm = ({ product }: any) => {
     },
   });
 
-  console.log(form.getValues(), "FORMVALUE");
-
   const onFormSubmit = async (data: ProductFormData) => {
     createUpdateProduct(data);
   };

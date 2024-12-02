@@ -64,7 +64,6 @@ const Preview = ({ onSave, onDiscard }: any) => {
   const form = useFormContext();
   const params = useParams();
 
-  console.log("formState", form.getValues());
 
   const categoriesData = [
     {

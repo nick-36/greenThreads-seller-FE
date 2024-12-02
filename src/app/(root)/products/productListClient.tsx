@@ -12,7 +12,7 @@ const useProducts = (search: string, tab: string, page: string) => {
   return useQuery({
     queryKey: ["products", search, tab, page],
     queryFn: async () => {
-      const response = await axiosPrivate.get("/products", {
+      const response = await axiosPrivate.get("/products/by-seller", {
         params: {
           search,
           status: tab,

@@ -21,7 +21,6 @@ type CategoryListProps = {
 };
 
 const CategoryList = ({ categories }: CategoryListProps) => {
-  console.log(categories, "CATE");
   const columns: ColumnDef<any>[] = [
     {
       id: "name",

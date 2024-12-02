@@ -2,6 +2,6 @@ import axios, { withAuthorization } from "@/lib/utils/axios";
 const fetchWithAuthorization = withAuthorization();
 
 export const fetchAllProducts = async () => {
-  const products = await fetchWithAuthorization("/products");
+  const products = await fetchWithAuthorization("/products/by-seller");
   return products;
 };

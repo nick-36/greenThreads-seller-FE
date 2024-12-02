@@ -8,7 +8,6 @@ const fetchWithAuthorization = withAuthorization();
 
 export default async function Home() {
   const currentDayAnalytics = await fetchWithAuthorization("/analytics/today");
-  console.log(currentDayAnalytics, "CURRENTDATATA");
   const statsArray = [
     {
       title: "Today Orders",

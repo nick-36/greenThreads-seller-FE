@@ -170,7 +170,6 @@ const ProductCategoryInfo = ({ isFormDisabled = false }: any) => {
               control={form.control}
               name="subCategoryId"
               render={({ field }) => {
-                console.log(field, "FIElD");
                 return (
                   <FormItem className="flex flex-col">
                     <FormLabel>Sub Category</FormLabel>

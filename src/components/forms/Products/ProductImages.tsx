@@ -33,7 +33,6 @@ const ProductImage = () => {
           // className="bg-slate-800 ut-label:text-lg ut-allowed-content:ut-uploading:text-red-300"
           endpoint="multiImageUploader"
           onClientUploadComplete={(data) => {
-            console.log("Files: ", data);
             const newFiles = [...productImages, ...data];
             form.setValue("productImages", newFiles);
             toast({
